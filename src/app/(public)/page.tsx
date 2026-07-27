@@ -1,11 +1,29 @@
-export default function PublicHomePage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-5 text-center text-black">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.24em]">Vitrine Web</p>
-        <h1 className="mt-5 font-serif text-4xl">Sua vitrine começa aqui.</h1>
-        <p className="mt-3 text-sm text-gray-500">O catálogo estará disponível em breve.</p>
-      </div>
-    </main>
-  )
+import { CatalogClient } from '@/features/catalog/components/catalog-client'
+import { fetchCategoriesWithSubcategories } from '@/features/catalog/api/fetch-categories'
+import { fetchProducts } from '@/features/catalog/api/fetch-products'
+
+interface HomePageProps {
+  searchParams: Promise<{
+    name?: string
+    categoryId?: string
+    subcategoryId?: string
+    page?: string
+  }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams
+  const parsedPage = Number.parseInt(params.page ?? '1', 10)
+  const queryParams = {
+    name: params.name,
+    categoryId: params.categoryId,
+    subcategoryId: params.subcategoryId,
+    page: Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+  }
+  const [initialProducts, initialCategories] = await Promise.all([
+    fetchProducts(queryParams),
+    fetchCategoriesWithSubcategories(),
+  ])
+
+  return <CatalogClient initialProducts={initialProducts} initialCategories={initialCategories} queryParams={queryParams} />
 }

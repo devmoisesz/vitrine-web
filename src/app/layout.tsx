@@ -1,6 +1,7 @@
 import { Bodoni_Moda, Inter } from 'next/font/google'
 import type { Metadata } from 'next'
 import '@/styles/globals.css'
+import { Providers } from '@/app/providers'
 
 const bodoniModa = Bodoni_Moda({ subsets: ['latin'], variable: '--font-serif' })
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
@@ -14,7 +15,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="pt-BR">
       <body className={`${bodoniModa.variable} ${inter.variable} font-sans antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
