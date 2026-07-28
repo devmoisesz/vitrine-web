@@ -28,66 +28,57 @@ export function CategoryChips() {
     router.push(`/?${params.toString()}`);
   }
 
+  const chipClass = (active: boolean) =>
+    twMerge(
+      "shrink-0 whitespace-nowrap border px-3 py-1.5 text-xs transition-colors",
+      active
+        ? "border-foreground bg-foreground text-background"
+        : "border-border text-muted-foreground",
+    );
+
   return (
-    <div
-      data-slot="category-chips"
-      className="border-b border-gray-200 bg-white/70 py-3 md:hidden"
-    >
-      <div className="flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
-        <Chip
-          label="Todas"
-          active={!activeCategoryId}
+    <div className="flex flex-col gap-2 border-b border-border py-3">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
           onClick={() => goToFilter(undefined, undefined)}
-        />
+          className={chipClass(!activeCategoryId)}
+        >
+          Todos
+        </button>
         {categories?.map((category) => (
-          <Chip
+          <button
             key={category.id}
-            label={category.name}
-            active={activeCategoryId === category.id}
+            type="button"
             onClick={() => goToFilter(category.id, undefined)}
-          />
+            className={chipClass(activeCategoryId === category.id)}
+          >
+            {category.name}
+          </button>
         ))}
       </div>
 
       {activeCategory && activeCategory.subcategories.length > 0 && (
-        <div className="mt-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {activeCategory.subcategories.map((subcategory) => (
-            <Chip
+            <button
               key={subcategory.id}
-              label={subcategory.name}
-              active={activeSubcategoryId === subcategory.id}
-              onClick={() => goToFilter(activeCategory.id, subcategory.id)}
-              subtle
-            />
+              type="button"
+              onClick={() =>
+                goToFilter(
+                  activeCategory.id,
+                  activeSubcategoryId === subcategory.id
+                    ? undefined
+                    : subcategory.id,
+                )
+              }
+              className={chipClass(activeSubcategoryId === subcategory.id)}
+            >
+              {subcategory.name}
+            </button>
           ))}
         </div>
       )}
     </div>
-  );
-}
-
-interface ChipProps {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  subtle?: boolean;
-}
-
-function Chip({ label, active, onClick, subtle }: ChipProps) {
-  return (
-    <button
-      type="button"
-      data-slot="category-chip"
-      onClick={onClick}
-      className={twMerge(
-        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition",
-        subtle ? "text-gray-600" : "text-black",
-        active
-          ? "border-black bg-black text-white"
-          : "border-gray-200 bg-white text-gray-700",
-      )}
-    >
-      {label}
-    </button>
   );
 }

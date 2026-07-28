@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { twMerge } from 'tailwind-merge';
+import { useRouter, useSearchParams } from "next/navigation";
+import { twMerge } from "tailwind-merge";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 40;
 
@@ -14,86 +15,142 @@ interface PaginationProps {
   gridRef: React.RefObject<HTMLElement | null>;
 }
 
-export function Pagination({ currentPage, itemsInCurrentPage, totalCount, gridRef }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  itemsInCurrentPage,
+  totalCount,
+  gridRef,
+}: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const totalPages = totalCount ? Math.ceil(totalCount / PAGE_SIZE) : undefined;
-  const hasNextPage = totalPages ? currentPage < totalPages : itemsInCurrentPage === PAGE_SIZE;
+  const hasNextPage = totalPages
+    ? currentPage < totalPages
+    : itemsInCurrentPage === PAGE_SIZE;
   const hasPreviousPage = currentPage > 1;
 
   function goToPage(page: number) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(page));
+    params.set("page", String(page));
     router.push(`/?${params.toString()}`);
 
-    // Rola até o topo do grid, não do topo absoluto da página — mantém o
-    // contexto do header/filtros visível.
-    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   // Modo completo: sabemos o total de páginas, mostramos os números
   if (totalPages) {
     const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+    const visiblePages = getVisiblePages(pages, currentPage);
 
     return (
-      <nav data-slot="pagination" aria-label="Paginação" className="flex items-center justify-center gap-2 py-8">
-        <PageButton disabled={!hasPreviousPage} onClick={() => goToPage(currentPage - 1)} label="Página anterior">
-          «
-        </PageButton>
+      <nav
+        aria-label="Paginação"
+        className="mt-14 flex items-center justify-center gap-1"
+      >
+        <button
+          type="button"
+          aria-label="Página anterior"
+          disabled={!hasPreviousPage}
+          onClick={() => goToPage(currentPage - 1)}
+          className="p-2 text-muted-foreground disabled:opacity-30"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
 
-        {pages.map((page) => (
-          <PageButton key={page} active={page === currentPage} onClick={() => goToPage(page)} label={`Página ${page}`}>
-            {page}
-          </PageButton>
-        ))}
+        {visiblePages.map((value) =>
+          typeof value === "number" ? (
+            <button
+              key={value}
+              type="button"
+              onClick={() => goToPage(value)}
+              aria-current={value === currentPage ? "page" : undefined}
+              className={twMerge(
+                "flex size-9 items-center justify-center text-sm transition-colors",
+                value === currentPage
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {value}
+            </button>
+          ) : (
+            <span key={value} className="px-1 text-muted-foreground">
+              …
+            </span>
+          ),
+        )}
 
-        <PageButton disabled={!hasNextPage} onClick={() => goToPage(currentPage + 1)} label="Próxima página">
-          »
-        </PageButton>
+        <button
+          type="button"
+          aria-label="Próxima página"
+          disabled={!hasNextPage}
+          onClick={() => goToPage(currentPage + 1)}
+          className="p-2 text-muted-foreground disabled:opacity-30"
+        >
+          <ChevronRight className="size-4" />
+        </button>
       </nav>
     );
   }
 
   // Modo degradado: sem total de páginas, só anterior/próximo + página atual
   return (
-    <nav data-slot="pagination" aria-label="Paginação" className="flex items-center justify-center gap-3 py-8 text-sm">
-      <PageButton disabled={!hasPreviousPage} onClick={() => goToPage(currentPage - 1)} label="Página anterior">
-        « Anterior
-      </PageButton>
-      <span className="text-gray-500">Página {currentPage}</span>
-      <PageButton disabled={!hasNextPage} onClick={() => goToPage(currentPage + 1)} label="Próxima página">
-        Próxima »
-      </PageButton>
+    <nav
+      aria-label="Paginação"
+      className="mt-14 flex items-center justify-center gap-3 text-sm"
+    >
+      <button
+        type="button"
+        aria-label="Página anterior"
+        disabled={!hasPreviousPage}
+        onClick={() => goToPage(currentPage - 1)}
+        className="p-2 text-muted-foreground disabled:opacity-30"
+      >
+        <ChevronLeft className="size-4" /> Anterior
+      </button>
+
+      <span className="text-muted-foreground">Página {currentPage}</span>
+
+      <button
+        type="button"
+        aria-label="Próxima página"
+        disabled={!hasNextPage}
+        onClick={() => goToPage(currentPage + 1)}
+        className="p-2 text-muted-foreground disabled:opacity-30"
+      >
+        Próxima <ChevronRight className="size-4" />
+      </button>
     </nav>
   );
 }
 
-interface PageButtonProps {
-  children: React.ReactNode;
-  onClick: () => void;
-  label: string;
-  active?: boolean;
-  disabled?: boolean;
-}
+function getVisiblePages(
+  pages: number[],
+  current: number,
+): (number | string)[] {
+  const total = pages.length;
+  if (total <= 7) return pages;
 
-function PageButton({ children, onClick, label, active, disabled }: PageButtonProps) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-current={active ? 'page' : undefined}
-      disabled={disabled}
-      onClick={onClick}
-      data-slot="pagination-button"
-      data-disabled={disabled ? '' : undefined}
-      className={twMerge(
-        'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm',
-        active ? 'bg-black text-white' : 'text-black hover:bg-gray-50',
-        'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
-      )}
-    >
-      {children}
-    </button>
-  );
+  const result: (number | string)[] = [];
+  const alwaysShowFirst = 1;
+  const alwaysShowLast = total;
+
+  if (current <= 4) {
+    result.push(...pages.slice(0, 5), "…", alwaysShowLast);
+  } else if (current >= total - 3) {
+    result.push(alwaysShowFirst, "…", ...pages.slice(total - 5));
+  } else {
+    result.push(
+      alwaysShowFirst,
+      "…",
+      current - 1,
+      current,
+      current + 1,
+      "…",
+      alwaysShowLast,
+    );
+  }
+
+  return result;
 }

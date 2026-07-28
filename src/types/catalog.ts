@@ -9,6 +9,8 @@ export interface StoreSummary {
    */
   logo_url?: string | null;
   logo_image_url?: string | null;
+  /** WhatsApp da loja para contato. */
+  whatsapp?: string | null;
 }
 
 export interface ProductImage {
@@ -26,7 +28,7 @@ export interface Product {
   price: string;
   sizes: string[];
   stock: number;
-  status: 'ATIVO' | 'INATIVO';
+  status: "ATIVO" | "INATIVO";
   storeId: string;
   categoryId: string;
   subcategoryId: string;
@@ -80,6 +82,55 @@ function getStoreLogo(store: StoreSummary): string | null {
 export function getMainImage(product: Product): string | null {
   const main = product.products_images.find((img) => img.is_main);
   return main?.image_url ?? product.products_images[0]?.image_url ?? null;
+}
+
+export type UserRole = "Admin" | "Cliente" | "Proprietário" | "Funcionário";
+
+export interface CartItem {
+  id: string;
+  cartId: string;
+  productId: string;
+  quantity: number;
+  selectedSize: string | null;
+  product: {
+    id?: string;
+    name: string;
+    price: string;
+    stock?: number;
+    sizes?: string[];
+    products_images: ProductImage[];
+  };
+}
+
+export interface Cart {
+  id: string;
+  userId: string;
+  storeId: string;
+  createdAt: string;
+  updatedAt: string;
+  store: StoreSummary;
+  cart_items: CartItem[];
+}
+
+export interface Address {
+  id?: string;
+  label: string;
+  cep: string;
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  number: string;
+  complement: string | null;
+}
+
+export interface Profile {
+  user_name: string;
+  user_email: string;
+  user_role: UserRole;
+  store_name?: string | null;
+  store_address?: Address | null;
+  user_address?: Address[];
 }
 
 export { getStoreLogo };
