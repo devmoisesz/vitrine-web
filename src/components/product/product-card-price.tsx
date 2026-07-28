@@ -1,4 +1,4 @@
-import { formatPrice } from '@/lib/format-price';
+import { formatPrice } from "@/lib/format-price";
 
 interface ProductCardPriceProps {
   price: string;
@@ -6,7 +6,10 @@ interface ProductCardPriceProps {
 
 export function ProductCardPrice({ price }: ProductCardPriceProps) {
   return (
-    <span data-slot="product-card-price" className="font-serif text-sm">
+    <span
+      data-slot="product-card-price"
+      className="text-sm text-muted-foreground"
+    >
       {formatPrice(price)}
     </span>
   );

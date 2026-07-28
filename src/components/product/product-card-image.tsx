@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import Image from "next/image";
 
 interface ProductCardImageProps {
   imageUrl: string | null;
@@ -6,9 +6,16 @@ interface ProductCardImageProps {
   isOutOfStock: boolean;
 }
 
-export function ProductCardImage({ imageUrl, productName, isOutOfStock }: ProductCardImageProps) {
+export function ProductCardImage({
+  imageUrl,
+  productName,
+  isOutOfStock,
+}: ProductCardImageProps) {
   return (
-    <div data-slot="product-card-image" className="relative aspect-[3/4] w-full overflow-hidden bg-gray-50">
+    <div
+      data-slot="product-card-image"
+      className="relative aspect-[3/4] w-full overflow-hidden bg-muted"
+    >
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -19,15 +26,14 @@ export function ProductCardImage({ imageUrl, productName, isOutOfStock }: Produc
           className="object-cover transition-opacity group-hover:opacity-90"
         />
       ) : (
-        <div className="flex h-full items-center justify-center text-xs text-gray-500">Sem imagem</div>
+        <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+          sem imagem
+        </div>
       )}
 
       {isOutOfStock && (
-        <span
-          data-slot="out-of-stock-badge"
-          className="absolute left-2 top-2 bg-white px-2 py-1 text-[11px] font-medium"
-        >
-          Indisponível
+        <span className="absolute left-0 top-0 bg-foreground px-2 py-1 text-[10px] uppercase tracking-widest text-background">
+          Esgotado
         </span>
       )}
     </div>

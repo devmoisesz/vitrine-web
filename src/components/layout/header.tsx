@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search, ShoppingBag, X } from "lucide-react";
+
 import whiteLogo from "../../../img/vitrine-web-white.png";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useCartCount } from "@/features/cart/hooks/use-cart-count";
@@ -17,9 +18,11 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(
     Boolean(searchParams.get("name")),
   );
+
   const [searchValue, setSearchValue] = useState(
     searchParams.get("name") ?? "",
   );
+
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -28,13 +31,17 @@ export function Header() {
   );
 
   useEffect(() => {
-    if (isSearchOpen) inputRef.current?.focus();
+    if (isSearchOpen) {
+      inputRef.current?.focus();
+    }
   }, [isSearchOpen]);
 
   function handleSearchChange(value: string) {
     setSearchValue(value);
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
@@ -44,9 +51,12 @@ export function Header() {
       } else {
         params.delete("name");
       }
+
       params.delete("page");
 
-      router.push(`/?${params.toString()}`);
+      const query = params.toString();
+
+      router.push(query ? `/?${query}` : "/");
     }, 400);
   }
 
@@ -57,17 +67,11 @@ export function Header() {
   }
 
   return (
-    <header
-      data-slot="header"
-      className="border-b border-white/10 bg-[#050505] px-4 py-4 text-white shadow-sm md:px-8"
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-        <div className="w-16 shrink-0 md:w-24" />
-
+    <header className="sticky top-0 z-40 bg-foreground text-background">
+      <div className="relative mx-auto flex h-24 max-w-[1400px] items-center px-4 md:h-32 md:px-8">
         <Link
           href="/"
-          data-slot="header-logo"
-          className="flex flex-1 items-center justify-center"
+          className="mx-auto transition-opacity hover:opacity-80"
         >
           <Image
             src={whiteLogo}
@@ -75,60 +79,53 @@ export function Header() {
             width={220}
             height={56}
             priority
-            className="h-14 w-auto object-contain sm:h-16 md:h-20"
+            className="h-28 w-auto object-contain md:h-40"
           />
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div data-slot="header-search" className="flex items-center">
-            {isSearchOpen ? (
-              <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-sm">
-                <Search className="size-4 text-white/80" aria-hidden />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchValue}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  onBlur={handleCloseSearch}
-                  placeholder="Buscar produtos"
-                  className="w-32 bg-transparent py-1 text-sm text-white outline-none placeholder:text-white/60 sm:w-48"
-                />
-                <button
-                  type="button"
-                  aria-label="Fechar busca"
-                  onClick={() => {
-                    setSearchValue("");
-                    handleSearchChange("");
-                    setIsSearchOpen(false);
-                  }}
-                >
-                  <X className="size-4 text-white/80 transition hover:text-white" />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                aria-label="Buscar"
-                onClick={() => setIsSearchOpen(true)}
-                className="rounded-full border border-white/15 bg-white/10 p-2.5 transition hover:bg-white/20"
-              >
-                <Search className="size-4" />
-              </button>
-            )}
+        <div className="absolute right-4 flex items-center gap-2 md:right-8 md:gap-3">
+          <div
+            className="hidden items-center overflow-hidden border-b transition-all duration-200 md:flex"
+            style={{
+              width: isSearchOpen ? "14rem" : "0",
+              borderColor: isSearchOpen
+                ? "var(--color-background)"
+                : "transparent",
+            }}
+          >
+            <input
+              ref={inputRef}
+              value={searchValue}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Buscar produtos"
+              aria-label="Buscar produtos"
+              className="w-full bg-transparent py-1 text-sm outline-none placeholder:text-background/50"
+            />
           </div>
+
+          <button
+            type="button"
+            aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"}
+            onClick={() => setIsSearchOpen((open) => !open)}
+            className="flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
+          >
+            {isSearchOpen ? (
+              <X className="size-5" />
+            ) : (
+              <Search className="size-5" />
+            )}
+          </button>
 
           {isAuthenticated ? (
             <Link
               href="/carrinho"
               aria-label="Meus carrinhos"
-              className="relative rounded-full border border-white/15 bg-white/10 p-2.5 transition hover:bg-white/20"
+              className="relative flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
             >
-              <ShoppingBag className="size-4" />
+              <ShoppingBag className="size-5" />
+
               {Boolean(cartCount) && (
-                <span
-                  data-slot="cart-badge"
-                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-black"
-                >
+                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-background text-[10px] font-medium text-foreground">
                   {cartCount}
                 </span>
               )}
@@ -136,13 +133,26 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="rounded-full border border-white/20 bg-white px-3 py-2 text-sm font-medium text-black transition hover:bg-gray-100"
+              className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
             >
               Entrar
             </Link>
           )}
         </div>
       </div>
+
+      {isSearchOpen && (
+        <div className="border-t border-background/15 px-4 pb-3 pt-2 md:hidden">
+          <input
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onBlur={handleCloseSearch}
+            placeholder="Buscar produtos"
+            aria-label="Buscar produtos"
+            className="w-full border-b border-background/40 bg-transparent py-2 text-sm outline-none placeholder:text-background/50"
+          />
+        </div>
+      )}
     </header>
   );
 }
