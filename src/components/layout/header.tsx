@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, ShoppingBag, X } from "lucide-react";
+import { Search, ShoppingBag, User, X } from "lucide-react";
 
 import whiteLogo from "../../../img/vitrine-web-white.png";
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -69,10 +69,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-foreground text-background">
       <div className="relative mx-auto flex h-24 max-w-[1400px] items-center px-4 md:h-32 md:px-8">
-        <Link
-          href="/"
-          className="mx-auto transition-opacity hover:opacity-80"
-        >
+        <Link href="/" className="mx-auto transition-opacity hover:opacity-80">
           <Image
             src={whiteLogo}
             alt="Vitrine Web"
@@ -117,19 +114,29 @@ export function Header() {
           </button>
 
           {isAuthenticated ? (
-            <Link
-              href="/carrinho"
-              aria-label="Meus carrinhos"
-              className="relative flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
-            >
-              <ShoppingBag className="size-5" />
+            <>
+              <Link
+                href="/perfil"
+                aria-label="Meu perfil"
+                className="flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
+              >
+                <User className="size-5" />
+              </Link>
 
-              {Boolean(cartCount) && (
-                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-background text-[10px] font-medium text-foreground">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+              <Link
+                href="/carrinho"
+                aria-label="Meus carrinhos"
+                className="relative flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
+              >
+                <ShoppingBag className="size-5" />
+
+                {Boolean(cartCount) && (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-background text-[10px] font-medium text-foreground">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </>
           ) : (
             <Link
               href="/login"
