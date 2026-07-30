@@ -31,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     if (!isAuthenticated) {
       // Regra de negócio: só é possível adicionar ao carrinho estando logado
-      router.push(`/login?next=/produto/${product.id}`);
+      router.push(`/login?redirect=/produto/${product.id}`);
       return;
     }
 
