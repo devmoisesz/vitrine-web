@@ -85,7 +85,8 @@ function getPasswordStatus(password: string) {
 }
 
 function safeReturnPath() {
-  const destination = new URLSearchParams(window.location.search).get("next");
+  const query = new URLSearchParams(window.location.search);
+  const destination = query.get("redirect") ?? query.get("next");
   return destination?.startsWith("/") && !destination.startsWith("//")
     ? destination
     : "/";

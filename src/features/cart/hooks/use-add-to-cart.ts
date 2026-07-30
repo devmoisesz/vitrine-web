@@ -5,14 +5,15 @@ interface AddToCartInput {
   productId: string;
   accessToken: string;
   quantity?: number;
-  selectedSize?: string;
+  size?: string;
 }
 
-async function addToCart({ productId, accessToken, quantity = 1, selectedSize }: AddToCartInput) {
+async function addToCart({ productId, accessToken, quantity = 1, size }: AddToCartInput) {
   await apiClient(`/products/${productId}/cart`, {
     method: 'POST',
     accessToken,
-    body: { quantity, selectedSize },
+    authenticated: true,
+    body: { quantity, ...(size ? { size } : {}) },
   });
 }
 

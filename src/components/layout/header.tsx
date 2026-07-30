@@ -4,16 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, ShoppingBag, User, X } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
+import { ChevronDown, LogOut, Search, ShoppingBag, X } from "lucide-react";
 
 import whiteLogo from "../../../img/vitrine-web-white.png";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { logout } from "@/features/auth/api/authenticate";
 import { useCartCount } from "@/features/cart/hooks/use-cart-count";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 
 export function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, accessToken } = useAuth();
+  const { isAuthenticated, accessToken, isLoading: isAuthLoading } = useAuth();
 
   const [isSearchOpen, setIsSearchOpen] = useState(
     Boolean(searchParams.get("name")),
@@ -29,6 +32,19 @@ export function Header() {
   const { data: cartCount } = useCartCount(
     isAuthenticated ? accessToken : null,
   );
+  const { data: profile, isLoading: isProfileLoading } = useProfile(
+    isAuthenticated ? accessToken : null,
+  );
+
+  const userName = profile?.user_name?.trim() ?? "";
+  const firstName = userName.split(/\s+/)[0] || "Usuário";
+  const initials = userName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0])
+    .join("")
+    .toUpperCase();
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -63,6 +79,15 @@ export function Header() {
   function handleCloseSearch() {
     if (!searchValue) {
       setIsSearchOpen(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } finally {
+      router.push("/login");
+      router.refresh();
     }
   }
 
@@ -113,15 +138,70 @@ export function Header() {
             )}
           </button>
 
-          {isAuthenticated ? (
+          {isAuthLoading ? (
+            <div
+              aria-label="Carregando dados da conta"
+              className="h-10 w-28 animate-pulse rounded-full bg-background/15"
+            />
+          ) : isAuthenticated ? (
             <>
-              <Link
-                href="/perfil"
-                aria-label="Meu perfil"
-                className="flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20"
-              >
-                <User className="size-5" />
-              </Link>
+              <Menu.Root modal={false}>
+                <Menu.Trigger
+                  openOnHover
+                  delay={100}
+                  closeDelay={150}
+                  aria-label="Abrir menu da conta"
+                  className="flex h-10 items-center gap-2 rounded-full bg-background/10 py-1 pl-1 pr-2 transition-colors hover:bg-background/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="flex size-8 items-center justify-center rounded-full bg-background text-xs font-bold text-foreground"
+                  >
+                    {isProfileLoading ? "" : initials || "U"}
+                  </span>
+                  <span className="hidden max-w-28 truncate text-sm font-medium sm:block">
+                    {isProfileLoading ? (
+                      <span className="block h-3 w-16 animate-pulse rounded bg-background/30" />
+                    ) : (
+                      <>Olá, {firstName}</>
+                    )}
+                  </span>
+                  <ChevronDown aria-hidden="true" className="hidden size-4 sm:block" />
+                </Menu.Trigger>
+
+                <Menu.Portal>
+                  <Menu.Positioner side="bottom" align="end" sideOffset={8}>
+                    <Menu.Popup className="z-50 min-w-52 rounded-xl border border-border bg-surface p-1 shadow-md outline-none">
+                      <Menu.Item
+                        onClick={() => router.push("/perfil")}
+                        className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
+                      >
+                        Perfil
+                      </Menu.Item>
+                      <Menu.Item
+                        onClick={() => router.push("/pedidos")}
+                        className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
+                      >
+                        Meus pedidos
+                      </Menu.Item>
+                      <Menu.Item
+                        onClick={() => router.push("/carrinho")}
+                        className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
+                      >
+                        Meus carrinhos
+                      </Menu.Item>
+                      <Menu.Separator className="my-1 h-px bg-border" />
+                      <Menu.Item
+                        onClick={handleLogout}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive outline-none transition-colors hover:bg-destructive/10 data-[highlighted]:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive/30"
+                      >
+                        <LogOut aria-hidden="true" className="size-4" />
+                        Sair
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
 
               <Link
                 href="/carrinho"

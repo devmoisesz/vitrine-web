@@ -39,6 +39,8 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
   }
   ```
 
+- PATCH `/account/password` — Troca a senha do usuario (Auth: `JwtAuthGuard`) Body: `{ currentPassword, newPassword }`
+
 ## Usuário / Perfil
 
 - GET `/me` — Obter perfil do usuário (Auth: `JwtAuthGuard`).
@@ -47,6 +49,7 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
   {
     "user_name": "João da Silva",
     "user_email": "joao@example.com",
+    "provide": "LOCAL",
     "user_role": "Proprietário",
     "store_name": "Loja Exemplo",
     "store_address": {
@@ -119,7 +122,7 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
     }
   ]
   ```
-- GET `/store/:slug` — Obter perfil da loja (Auth: `JwtAuthGuard`).
+- GET `/store/:slug` — Obter perfil da loja (Public).
   Example response (200, `OutputStoreProfileDto`):
   ```json
   {

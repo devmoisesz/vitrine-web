@@ -13,6 +13,8 @@ interface PaginationProps {
   /** Só disponível quando o backend expõe X-Total-Count (ver fetch-products.ts) */
   totalCount?: number;
   gridRef: React.RefObject<HTMLElement | null>;
+  /** Rota que receberá o parâmetro `page`. A Home continua sendo o padrão. */
+  basePath?: string;
 }
 
 export function Pagination({
@@ -20,6 +22,7 @@ export function Pagination({
   itemsInCurrentPage,
   totalCount,
   gridRef,
+  basePath = "/",
 }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,7 +36,7 @@ export function Pagination({
   function goToPage(page: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(page));
-    router.push(`/?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
 
     gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }

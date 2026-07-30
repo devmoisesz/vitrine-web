@@ -127,6 +127,10 @@ export async function apiClient<T = unknown>(
 
   let response = await fetch(`${API_URL}${path}`, {
     ...requestOptions,
+    // A API mantém o refresh token em um cookie httpOnly. Como ela pode estar
+    // em outro domínio, é necessário incluí-lo também no login para que o
+    // navegador aceite o Set-Cookie da resposta.
+    credentials: requestOptions.credentials ?? "include",
     body: bodyPayload,
     headers: {
       ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
@@ -149,6 +153,7 @@ export async function apiClient<T = unknown>(
       const newToken = globalAccessToken;
       response = await fetch(`${API_URL}${path}`, {
         ...requestOptions,
+        credentials: requestOptions.credentials ?? "include",
         body: bodyPayload,
         headers: {
           ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
@@ -163,6 +168,7 @@ export async function apiClient<T = unknown>(
         // Refaz a requisição com o novo token
         response = await fetch(`${API_URL}${path}`, {
           ...requestOptions,
+          credentials: requestOptions.credentials ?? "include",
           body: bodyPayload,
           headers: {
             ...(isJsonBody ? { "Content-Type": "application/json" } : {}),

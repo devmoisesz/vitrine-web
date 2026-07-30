@@ -15,3 +15,8 @@ export async function authenticate(credentials: LoginCredentials) {
 export async function authenticateWithGoogle(idToken: string) {
   await saveSession(apiClient<AuthenticationResponse>('/authenticate/google', { method: 'POST', body: { id_token: idToken } }))
 }
+
+export async function logout() {
+  await apiClient<void>('/logout', { method: 'POST' })
+  setAccessToken(null)
+}

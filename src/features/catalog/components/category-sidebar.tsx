@@ -3,11 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { ChevronDown } from "lucide-react";
 import { useCategories } from "@/features/catalog/hooks/use-categories";
 import type { CategoryWithSubcategories } from "@/types/catalog";
 
-export function CategorySidebar() {
+export function CategorySidebar({ basePath = "/" }: { basePath?: string }) {
   const { data: categories, isLoading } = useCategories();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,7 +34,7 @@ export function CategorySidebar() {
     }
 
     params.delete("page");
-    router.push(`/?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   }
 
   function handleCategoryClick(category: CategoryWithSubcategories) {

@@ -8,6 +8,8 @@ interface ProductGridProps {
   searchTerm?: string;
   onRetry: () => void;
   onClearFilters: () => void;
+  emptyMessage?: string;
+  showClearFilters?: boolean;
 }
 
 export function ProductGrid({
@@ -17,6 +19,8 @@ export function ProductGrid({
   searchTerm,
   onRetry,
   onClearFilters,
+  emptyMessage,
+  showClearFilters = true,
 }: ProductGridProps) {
   if (isError) {
     return (
@@ -62,17 +66,17 @@ export function ProductGrid({
         className="flex flex-col items-center gap-3 py-24 text-center"
       >
         <p className="text-sm text-muted-foreground">
-          {searchTerm
+          {emptyMessage ?? (searchTerm
             ? `Nenhum produto encontrado para "${searchTerm}".`
-            : "Nenhum produto encontrado."}
+            : "Nenhum produto encontrado.")}
         </p>
-        <button
+        {showClearFilters && <button
           type="button"
           onClick={onClearFilters}
           className="text-sm font-medium underline underline-offset-4"
         >
           Limpar filtros
-        </button>
+        </button>}
       </div>
     );
   }
