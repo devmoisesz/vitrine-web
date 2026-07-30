@@ -26,3 +26,21 @@ export function registerSubcategory({ categorySlug, name }: { categorySlug: stri
     body: { name },
   });
 }
+
+export function updateCategory({ slug, name }: { slug: string; name: string }) {
+  return apiClient<void>(`/categories/${encodeURIComponent(slug)}/edit`, {
+    method: "PUT",
+    authenticated: true,
+    credentials: "include",
+    body: { name },
+  });
+}
+
+export function updateSubcategory({ categorySlug, id, name }: { categorySlug: string; id: string; name: string }) {
+  return apiClient<void>(`/categories/${encodeURIComponent(categorySlug)}/subcategories/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    authenticated: true,
+    credentials: "include",
+    body: { name },
+  });
+}
