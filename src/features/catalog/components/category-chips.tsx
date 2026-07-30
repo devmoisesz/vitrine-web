@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useCategories } from "@/features/catalog/hooks/use-categories";
 
-export function CategoryChips() {
+export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
   const { data: categories } = useCategories();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export function CategoryChips() {
     else params.delete("subcategoryId");
 
     params.delete("page");
-    router.push(`/?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   }
 
   const chipClass = (active: boolean) =>

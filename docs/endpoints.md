@@ -122,7 +122,7 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
     }
   ]
   ```
-- GET `/store/:slug` — Obter perfil da loja (Auth: `JwtAuthGuard`).
+- GET `/store/:slug` — Obter perfil da loja (Public).
   Example response (200, `OutputStoreProfileDto`):
   ```json
   {
