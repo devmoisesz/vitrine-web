@@ -105,6 +105,10 @@ export function Header() {
           />
         </Link>
 
+        <Link href="/lojas" className="absolute left-4 text-sm font-medium transition-opacity hover:opacity-70 md:left-8">
+          Lojas
+        </Link>
+
         <div className="absolute right-4 flex items-center gap-2 md:right-8 md:gap-3">
           <div
             className="hidden items-center overflow-hidden border-b transition-all duration-200 md:flex"
