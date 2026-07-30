@@ -1,7 +1,22 @@
-import { apiClient, setAccessToken } from '@/lib/api-client'
+import { ApiError, setAccessToken } from '@/lib/api-client'
 
-interface AuthenticationResponse { access_token: string; refresh_token: string }
+interface AuthenticationResponse { access_token: string }
 export interface LoginCredentials { email: string; password: string }
+
+async function sessionRequest(path: string, body?: unknown): Promise<AuthenticationResponse> {
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'include',
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { message?: string | string[] } | null
+    const message = Array.isArray(payload?.message) ? payload.message.join(' ') : (payload?.message ?? 'Não foi possível concluir a solicitação. Tente novamente.')
+    throw new ApiError(message, response.status)
+  }
+  return response.json() as Promise<AuthenticationResponse>
+}
 
 async function saveSession(request: Promise<AuthenticationResponse>) {
   const session = await request
@@ -9,14 +24,14 @@ async function saveSession(request: Promise<AuthenticationResponse>) {
 }
 
 export async function authenticate(credentials: LoginCredentials) {
-  await saveSession(apiClient<AuthenticationResponse>('/authenticate', { method: 'POST', body: credentials }))
+  await saveSession(sessionRequest('/api/session/login', credentials))
 }
 
 export async function authenticateWithGoogle(idToken: string) {
-  await saveSession(apiClient<AuthenticationResponse>('/authenticate/google', { method: 'POST', body: { id_token: idToken } }))
+  await saveSession(sessionRequest('/api/session/google', { id_token: idToken }))
 }
 
 export async function logout() {
-  await apiClient<void>('/logout', { method: 'POST' })
+  await fetch('/api/session/logout', { method: 'POST', credentials: 'include' })
   setAccessToken(null)
 }

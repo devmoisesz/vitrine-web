@@ -89,7 +89,7 @@ function safeReturnPath() {
   const destination = query.get("redirect") ?? query.get("next");
   return destination?.startsWith("/") && !destination.startsWith("//")
     ? destination
-    : "/";
+    : "/admin";
 }
 
 export default function LoginPage() {

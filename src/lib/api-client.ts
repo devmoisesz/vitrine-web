@@ -67,7 +67,7 @@ export async function refreshSession(): Promise<boolean> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const response = await fetch(`${API_URL}/refresh`, {
+      const response = await fetch("/api/session/refresh", {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -82,7 +82,6 @@ export async function refreshSession(): Promise<boolean> {
 
       const data = (await response.json()) as {
         access_token: string;
-        refresh_token: string;
       };
       setAccessToken(data.access_token);
       processQueue(null, data.access_token);
