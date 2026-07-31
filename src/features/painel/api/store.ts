@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import type { Order } from "@/types/orders";
 import type { Product } from "@/types/catalog";
+import type { StoreAddress } from "@/types/store";
 
 export interface StoreProfile {
   user_name: string;
@@ -8,6 +9,37 @@ export interface StoreProfile {
   user_role: string;
   store_name?: string;
   store_slug?: string;
+}
+
+export interface StoreSettings {
+  name: string;
+  email?: string;
+  logo_url: string | null;
+  description: string;
+  whatsapp: string;
+  payment_methods: string[];
+  delivery_methods: string[];
+  address: StoreAddress | null;
+}
+
+export interface UpdateStoreInput {
+  newName?: string;
+  newEmail?: string;
+  newDescription?: string;
+  newWhatsapp?: string;
+  newPaymentMethods?: string[];
+  newDeliveryMethods?: string[];
+}
+
+export interface StoreAddressInput {
+  label?: string;
+  cep: string;
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  number: string;
+  complement: string;
 }
 
 export interface StoreProduct {
@@ -289,6 +321,45 @@ export interface Employee {
   id: string;
   name: string;
   email: string;
+}
+
+export function getStoreSettings(slug: string, accessToken: string) {
+  return apiClient<StoreSettings>(`/store/${encodeURIComponent(slug)}`, {
+    method: "GET",
+    ...authenticated(accessToken),
+  });
+}
+
+export function updateStore(slug: string, input: UpdateStoreInput, accessToken: string) {
+  return apiClient<void>(`/store/${encodeURIComponent(slug)}/edit`, {
+    method: "PUT",
+    body: input,
+    ...authenticated(accessToken),
+  });
+}
+
+export function uploadStoreLogo(slug: string, file: File, accessToken: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo`, { method: "POST", body: formData, ...authenticated(accessToken) });
+}
+
+export function changeStoreLogo(slug: string, file: File, accessToken: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/change`, { method: "PATCH", body: formData, ...authenticated(accessToken) });
+}
+
+export function deleteStoreLogo(slug: string, accessToken: string) {
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/delete`, { method: "DELETE", ...authenticated(accessToken) });
+}
+
+export function saveStoreAddress(slug: string, input: StoreAddressInput, hasAddress: boolean, accessToken: string) {
+  return apiClient<void>(hasAddress ? `/store/${encodeURIComponent(slug)}/address` : `/address/${encodeURIComponent(slug)}/register/`, {
+    method: hasAddress ? "PUT" : "POST",
+    body: input,
+    ...authenticated(accessToken),
+  });
 }
 
 export function getStoreOrders(
