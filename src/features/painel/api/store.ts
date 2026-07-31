@@ -291,6 +291,17 @@ export interface Employee {
   email: string;
 }
 
+export function getStoreOrders(
+  slug: string,
+  page: number,
+  accessToken: string,
+) {
+  return apiClient<Order[]>(
+    `/store/${encodeURIComponent(slug)}/orders?page=${page}`,
+    { method: "GET", ...authenticated(accessToken) },
+  );
+}
+
 export interface RegisterCollaboratorInput {
   name: string;
   email: string;
