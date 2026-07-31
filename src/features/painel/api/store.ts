@@ -285,10 +285,29 @@ export function deleteProductImage(
 
 // ─── Colaboradores ────────────────────────────────────────────────────────
 
-// Rota de colaboradores padronizada com slug (docs/checkout.md, linha 121).
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface RegisterCollaboratorInput {
+  name: string;
+  email: string;
+  password: string;
+  role: "FUNCIONARIO";
+}
+
+export function getEmployees(slug: string, accessToken: string) {
+  return apiClient<Employee[]>(
+    `/store/${encodeURIComponent(slug)}/employees?page=1`,
+    { method: "GET", ...authenticated(accessToken) },
+  );
+}
+
 export function registerCollaborator(
   slug: string,
-  input: { name: string; email: string; password: string; role: string },
+  input: RegisterCollaboratorInput,
   accessToken: string,
 ) {
   return apiClient<void>(`/stores/${encodeURIComponent(slug)}/collaborators`, {
@@ -296,4 +315,15 @@ export function registerCollaborator(
     body: input,
     ...authenticated(accessToken),
   });
+}
+
+export function removeEmployee(
+  slug: string,
+  employeeId: string,
+  accessToken: string,
+) {
+  return apiClient<void>(
+    `/store/${encodeURIComponent(slug)}/delete/${encodeURIComponent(employeeId)}`,
+    { method: "DELETE", ...authenticated(accessToken) },
+  );
 }
