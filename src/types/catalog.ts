@@ -11,6 +11,9 @@ export interface StoreSummary {
   logo_image_url?: string | null;
   /** WhatsApp da loja para contato. */
   whatsapp?: string | null;
+  /** Disponíveis no retorno de /carts quando a API os expuser. */
+  payment_methods?: string[];
+  delivery_methods?: string[];
 }
 
 export interface ProductImage {

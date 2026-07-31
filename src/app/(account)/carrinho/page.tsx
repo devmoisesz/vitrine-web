@@ -109,8 +109,6 @@ export default function CartPage() {
             <StoreCartCard
               key={cart.id}
               cart={cart}
-              customerName={undefined}
-              address={undefined}
             />
           ))}
         </div>
