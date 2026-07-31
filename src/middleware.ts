@@ -15,7 +15,11 @@ function getPublicKey() {
 }
 
 export async function middleware(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/admin")) {
+  const { pathname } = request.nextUrl;
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isPainelRoute = pathname.startsWith("/painel");
+
+  if (!isAdminRoute && !isPainelRoute) {
     return NextResponse.next();
   }
 
@@ -23,23 +27,40 @@ export async function middleware(request: NextRequest) {
   const pem = getPublicKey();
 
   if (!refreshToken || !pem) {
-    return NextResponse.redirect(new URL("/login?redirect=/admin", request.url));
+    return NextResponse.redirect(
+      new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url),
+    );
   }
 
   try {
     const key = await importSPKI(pem, "RS256");
     const { payload } = await jwtVerify(refreshToken, key);
 
-    if (payload.role !== "ADMIN") {
+    if (isAdminRoute && payload.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    const collaboratorRoles = [
+      "FUNCIONARIO",
+      "PROPRIETARIO",
+      "Funcionário",
+      "Proprietário",
+    ];
+    if (
+      isPainelRoute &&
+      !collaboratorRoles.includes(payload.role as string)
+    ) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login?redirect=/admin", request.url));
+    return NextResponse.redirect(
+      new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url),
+    );
   }
 }
 
 export const config = {
-  matcher: "/admin/:path*",
+  matcher: ["/admin/:path*", "/painel/:path*"],
 };
