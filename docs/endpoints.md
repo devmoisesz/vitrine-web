@@ -235,6 +235,8 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
 
 ## Produtos (colaborador/loja)
 
+- GET `/store/:slug/manage/products` — Listar produtos da loja para gerenciamento (Auth: `JwtAuthGuard`, roles: `PROPRIETARIO`|`FUNCIONARIO`). Query: `?name=&?categoryId=&?subcategoryId=&?status=&?page=`. Retorna header `X-Total-Count` com o total de produtos.
+
 - POST `/stores/:slug/products` — Criar produto (Auth: `JwtAuthGuard` + `StoreAccessGuard`, roles: `FUNCIONARIO`|`PROPRIETARIO`). Body: product data (`name_product`, `tags`, `description`, `price`, `sizes`, `stock`, `name_category`, `name_subcategory`).
   Example response (201): retorna o `id` do produto criado (string).
   ```json
