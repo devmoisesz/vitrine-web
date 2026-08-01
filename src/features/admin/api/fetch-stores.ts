@@ -32,17 +32,25 @@ function toAdminStore(store: StorePayload): AdminStore {
     slug: store.slug ?? "",
     email: store.email ?? store.store_email ?? null,
     whatsapp: store.whatsapp ?? null,
-    active: store.active ?? store.isActive ?? ["ATIVO", "ACTIVE", "ATIVA"].includes(store.status?.toUpperCase() ?? ""),
+    active:
+      store.active ??
+      store.isActive ??
+      ["ATIVO", "ACTIVE", "ATIVA"].includes(store.status?.toUpperCase() ?? ""),
     createdAt: store.createdAt ?? store.created_at ?? null,
   };
 }
 
 export async function fetchStores(page = 1): Promise<AdminStore[]> {
-  const result = await apiClient<StorePayload[] | { data?: StorePayload[]; stores?: StorePayload[] }>(
-    `/stores?page=${page}`,
-    { method: "GET", credentials: "include" },
-  );
-  const stores = Array.isArray(result) ? result : (result.data ?? result.stores ?? []);
+  const result = await apiClient<
+    StorePayload[] | { data?: StorePayload[]; stores?: StorePayload[] }
+  >(`/stores/admin?page=${page}`, {
+    method: "GET",
+    authenticated: true,
+    credentials: "include",
+  });
+  const stores = Array.isArray(result)
+    ? result
+    : (result.data ?? result.stores ?? []);
   return stores.map(toAdminStore);
 }
 
