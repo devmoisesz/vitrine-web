@@ -10,7 +10,7 @@ export function useManageProducts(
   const status = params?.status;
 
   return useQuery({
-    queryKey: ["painel", "manage-products", slug, status, page],
+    queryKey: ["painel", "manage-products", slug, status, page, accessToken],
     queryFn: () => getManageProducts(slug!, accessToken!, { status, page }),
     enabled: Boolean(slug && accessToken),
   });

@@ -20,6 +20,9 @@ import {
   authenticate,
   authenticateWithGoogle,
 } from "@/features/auth/api/authenticate";
+import { getProfile } from "@/features/profile/api/profile";
+import { getAccessToken } from "@/lib/api-client";
+import { decodeJwtRole, isAdminRole } from "@/lib/roles";
 
 declare global {
   interface Window {
@@ -89,7 +92,7 @@ function safeReturnPath() {
   const destination = query.get("redirect") ?? query.get("next");
   return destination?.startsWith("/") && !destination.startsWith("//")
     ? destination
-    : "/admin";
+    : null;
 }
 
 export default function LoginPage() {
@@ -113,15 +116,64 @@ export default function LoginPage() {
     useWatch({ control, name: "password" }),
   );
 
-  function finishAuthentication() {
-    router.replace(safeReturnPath());
+  async function finishAuthentication() {
+    const explicitReturn = safeReturnPath();
+    if (explicitReturn) {
+      router.replace(explicitReturn);
+      router.refresh();
+      return;
+    }
+    // Sem redirect explícito — determina destino baseado no papel do usuário
+    let token = getAccessToken();
+    if (!token) {
+      // O token pode ser setado de forma síncrona pelo authenticate via
+      // setAccessToken, mas damos um tick de segurança
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      token = getAccessToken();
+    }
+    if (token) {
+      // 1ª opção: GET /me — fonte mais confiável de `user_role`
+      try {
+        const profile = await getProfile(token);
+        const role = profile.user_role;
+        console.log("[Login] Role from /me:", role);
+        if (isAdminRole(role)) {
+          console.log("[Login] Admin detected, redirecting to /admin");
+          router.replace("/admin");
+          router.refresh();
+          return;
+        }
+        // Colaborador ou cliente: vai para /painel — o middleware e as guards
+        // do backend decidem o acesso real.
+        console.log("[Login] Non-admin, redirecting to /painel");
+        router.replace("/painel");
+        router.refresh();
+        return;
+      } catch (err) {
+        console.log("[Login] /me failed, fallback to JWT:", err);
+        // /me falhou — fallback: decodifica o role do JWT
+        const jwtRole = decodeJwtRole(token);
+        console.log("[Login] JWT role:", jwtRole);
+        if (isAdminRole(jwtRole)) {
+          router.replace("/admin");
+          router.refresh();
+          return;
+        }
+        // Vai para /painel; se não for colaborador, o middleware redireciona
+        router.replace("/painel");
+        router.refresh();
+        return;
+      }
+    } else {
+      router.replace("/");
+    }
     router.refresh();
   }
   async function onSubmit(values: LoginForm) {
     setFormError(null);
     try {
       await authenticate(values);
-      finishAuthentication();
+      await finishAuthentication();
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -135,7 +187,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       await authenticateWithGoogle(response.credential);
-      finishAuthentication();
+      await finishAuthentication();
     } catch (error) {
       setFormError(
         error instanceof Error

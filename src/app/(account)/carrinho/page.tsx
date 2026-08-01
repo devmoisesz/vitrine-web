@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { Header } from "@/components/layout/header";
@@ -41,7 +41,7 @@ export default function CartPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <Suspense fallback={null}><Header /></Suspense>
         <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-12">
           <div className="h-6 w-40 animate-pulse bg-muted" />
           <div className="mt-10 flex flex-col gap-4">
@@ -61,7 +61,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Suspense fallback={null}><Header /></Suspense>
 
       <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-12">
         <p className="eyebrow text-muted-foreground">Suas sacolas</p>

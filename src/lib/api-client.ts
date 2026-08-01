@@ -195,5 +195,14 @@ export async function apiClient<T = unknown>(
   }
 
   const responseText = await response.text();
-  return (responseText ? JSON.parse(responseText) : undefined) as T;
+  if (!responseText) return undefined as T;
+
+  try {
+    return JSON.parse(responseText) as T;
+  } catch {
+    // Alguns endpoints 2xx respondem com texto cru (ex: POST
+    // /stores/:slug/products retorna apenas o UUID do produto, sem JSON).
+    // Nesses casos devolvemos o texto em vez de lançar SyntaxError.
+    return responseText as unknown as T;
+  }
 }

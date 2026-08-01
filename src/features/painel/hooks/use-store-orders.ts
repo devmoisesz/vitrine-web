@@ -7,7 +7,7 @@ export function useStoreOrders(
   accessToken: string | null,
 ) {
   return useQuery({
-    queryKey: ["painel", "store-orders", slug, page],
+    queryKey: ["painel", "store-orders", slug, page, accessToken],
     queryFn: () => getStoreOrders(slug!, page, accessToken!),
     enabled: Boolean(slug && accessToken),
     placeholderData: (previousData) => previousData,

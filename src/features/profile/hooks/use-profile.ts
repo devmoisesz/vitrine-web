@@ -3,7 +3,7 @@ import { getProfile } from "../api/profile";
 
 export function useProfile(accessToken: string | null) {
   return useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", accessToken],
     queryFn: () => getProfile(accessToken!),
     enabled: Boolean(accessToken),
   });

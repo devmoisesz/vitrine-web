@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -47,9 +48,11 @@ export function CartItemRow({ item }: { item: CartItem }) {
     <li className="flex gap-4 border-t border-border py-4 first:border-t-0">
       <div className="size-20 shrink-0 overflow-hidden bg-muted">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={item.product.name}
+            width={80}
+            height={80}
             className="size-full object-cover"
           />
         ) : null}

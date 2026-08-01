@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronDown, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -21,7 +22,7 @@ export function StoreCartCard({ cart }: { cart: Cart }) {
       <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:gap-6 md:p-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="size-11 shrink-0 overflow-hidden rounded-full bg-muted">
-            {logo ? <img src={logo} alt={cart.store.name} className="size-full object-cover" /> : <span className="flex size-full items-center justify-center text-xs font-medium">{cart.store.name.slice(0, 2).toUpperCase()}</span>}
+            {logo ? <Image src={logo} alt={cart.store.name} width={44} height={44} className="size-full object-cover" /> : <span className="flex size-full items-center justify-center text-xs font-medium">{cart.store.name.slice(0, 2).toUpperCase()}</span>}
           </div>
           <div className="min-w-0"><h2 className="truncate font-display text-base font-semibold">{cart.store.name}</h2><p className="text-xs text-muted-foreground">Atualizado {formatRelativeTime(cart.updatedAt)}</p></div>
         </div>

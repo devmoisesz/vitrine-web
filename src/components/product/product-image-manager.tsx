@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ProductImageCard } from "@/components/product/product-image-card";
 import { ProductImageUploader } from "@/components/product/product-image-uploader";
@@ -17,6 +18,8 @@ interface ProductImageManagerProps {
   slug: string;
   productId: string;
   accessToken: string;
+  /** Chamado ao clicar em "Salvar" — usado para sair da tela */
+  onSave?: () => void;
 }
 
 /**
@@ -33,6 +36,7 @@ export function ProductImageManager({
   slug,
   productId,
   accessToken,
+  onSave,
 }: ProductImageManagerProps) {
   const queryClient = useQueryClient();
   const queryKey = ["painel", "product-images", slug, productId];
@@ -70,6 +74,7 @@ export function ProductImageManager({
           accessToken,
         );
         setImages((prev) => [...prev, newImage]);
+        toast.success("Imagem enviada com sucesso!");
       } catch {
         setError("Erro ao enviar imagem. Tente novamente.");
       } finally {
@@ -192,6 +197,22 @@ export function ProductImageManager({
           </p>
         </div>
       )}
+
+      {/* Botão salvar / concluir */}
+      <div className="flex items-center justify-end border-t border-gray-200 pt-6">
+        <Button
+          variant="primary"
+          onClick={() => onSave?.()}
+          disabled={images.length === 0 || isUploading}
+          title={
+            images.length === 0
+              ? "Envie ao menos 1 imagem antes de salvar."
+              : undefined
+          }
+        >
+          Salvar
+        </Button>
+      </div>
 
       {/* Erro global */}
       {error && (

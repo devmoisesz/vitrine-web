@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { formatBRL } from "@/lib/format";
 import type { OrderItem } from "@/types/orders";
 
@@ -8,9 +9,11 @@ export function OrderItemRow({ item }: { item: OrderItem }) {
     <li className="flex gap-4 border-t border-border py-4 first:border-t-0">
       <div className="size-20 shrink-0 overflow-hidden bg-muted">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={item.product.name}
+            width={80}
+            height={80}
             className="size-full object-cover"
           />
         ) : null}

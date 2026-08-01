@@ -1,12 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ProductImageManager } from "@/components/product/product-image-manager";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useStoreProfile } from "@/features/painel/hooks/use-store-profile";
 
 export default function PainelProdutoImagensPage() {
   const params = useParams<{ productId: string }>();
+  const router = useRouter();
   const { accessToken } = useAuth();
   const profile = useStoreProfile(accessToken);
   const slug = profile.data?.store_slug;
@@ -25,6 +26,7 @@ export default function PainelProdutoImagensPage() {
         slug={slug}
         productId={params.productId}
         accessToken={accessToken}
+        onSave={() => router.push("/painel/produtos")}
       />
     </div>
   );

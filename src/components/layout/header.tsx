@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { ChevronDown, LogOut, Search, ShoppingBag, X } from "lucide-react";
 
@@ -13,7 +13,7 @@ import { logout } from "@/features/auth/api/authenticate";
 import { useCartCount } from "@/features/cart/hooks/use-cart-count";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 
-export function Header() {
+function HeaderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, accessToken, isLoading: isAuthLoading } = useAuth();
@@ -246,4 +246,8 @@ export function Header() {
       )}
     </header>
   );
+}
+
+export function Header() {
+  return <Suspense fallback={null}><HeaderContent /></Suspense>;
 }

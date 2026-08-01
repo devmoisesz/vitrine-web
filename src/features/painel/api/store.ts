@@ -154,16 +154,37 @@ export function getManageProducts(
 /**
  * POST /stores/:slug/products
  * Cria um novo produto.
- * Retorna 201 com { id: string }.
+ *
+ * O backend retorna 201 com o corpo sendo apenas o UUID do produto (string
+ * pura, sem JSON — `return product.id;`). Normalizamos aqui para o formato
+ * `{ id }` que o restante do frontend já espera.
  */
-export function createProduct(
+export async function createProduct(
   slug: string,
   body: CreateProductBody,
   accessToken: string,
-) {
-  return apiClient<CreateProductResponse>(
+): Promise<CreateProductResponse> {
+  const result = await apiClient<CreateProductResponse | string>(
     `/stores/${encodeURIComponent(slug)}/products`,
     { method: "POST", body, ...authenticated(accessToken) },
+  );
+
+  // Formato atual da API: string pura (UUID)
+  if (typeof result === "string") {
+    return { id: result };
+  }
+
+  // Formato alternativo (caso a API passe a retornar objeto): { id }
+  if (
+    typeof result === "object" &&
+    result !== null &&
+    typeof result.id === "string"
+  ) {
+    return { id: result.id };
+  }
+
+  throw new Error(
+    "Resposta inesperada ao criar produto. Contate o suporte.",
   );
 }
 
