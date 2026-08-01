@@ -86,33 +86,33 @@ function HeaderContent() {
     try {
       await logout();
     } finally {
-      router.push("/login");
+      router.push("/");
       router.refresh();
     }
   }
 
   return (
     <header className="sticky top-0 z-40 bg-foreground text-background">
-      <div className="relative mx-auto flex h-24 max-w-[1400px] items-center px-4 md:h-32 md:px-8">
+      <div className="relative mx-auto flex h-24 max-w-[1400px] items-center px-3 md:h-32 md:px-8">
+        <Link
+          href="/lojas"
+          className="text-sm font-medium transition-opacity hover:opacity-70 md:absolute md:left-8"
+        >
+          Lojas
+        </Link>
+
         <Link href="/" className="mx-auto transition-opacity hover:opacity-80">
           <Image
             src={whiteLogo}
             alt="Vitrine Web"
             width={220}
-            height={56}
+            height={220}
             priority
-            className="h-28 w-auto object-contain md:h-40"
+            className="h-12 w-12 object-contain sm:h-16 sm:w-16 md:h-40 md:w-40"
           />
         </Link>
 
-        <Link
-          href="/lojas"
-          className="absolute left-4 text-sm font-medium transition-opacity hover:opacity-70 md:left-8"
-        >
-          Lojas
-        </Link>
-
-        <div className="absolute right-4 flex items-center gap-2 md:right-8 md:gap-3">
+        <div className="flex items-center gap-1.5 md:absolute md:right-8 md:gap-3">
           <div
             className="hidden items-center overflow-hidden border-b transition-all duration-200 md:flex"
             style={{
@@ -231,13 +231,13 @@ function HeaderContent() {
             <>
               <Link
                 href="/cadastro"
-                className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
+                className="whitespace-nowrap rounded-full bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-sm"
               >
                 Criar Conta
               </Link>
               <Link
                 href="/login"
-                className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
+                className="whitespace-nowrap rounded-full bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-sm"
               >
                 Entrar
               </Link>
