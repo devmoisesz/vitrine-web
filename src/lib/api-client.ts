@@ -1,3 +1,5 @@
+import { translateApiError } from "./error-messages";
+
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://vitrine-web-api.onrender.com";
 
@@ -186,12 +188,17 @@ export async function apiClient<T = unknown>(
       message?: string | string[];
     } | null;
 
-    const message = Array.isArray(payload?.message)
+    const rawMessage = Array.isArray(payload?.message)
       ? payload.message.join(" ")
       : (payload?.message ??
         "Não foi possível concluir a solicitação. Tente novamente.");
 
-    throw new ApiError(message, response.status);
+    // Traduz a mensagem bruta da API para pt-BR amigável ao usuário final,
+    // sem expor detalhes internos da aplicação.
+    throw new ApiError(
+      translateApiError(rawMessage, response.status),
+      response.status,
+    );
   }
 
   const responseText = await response.text();

@@ -1,4 +1,5 @@
 import { ApiError, setAccessToken } from "@/lib/api-client";
+import { translateApiError } from "@/lib/error-messages";
 
 export interface AuthenticationResponse {
   access_token: string;
@@ -24,11 +25,16 @@ async function sessionRequest(
     const payload = (await response.json().catch(() => null)) as {
       message?: string | string[];
     } | null;
-    const message = Array.isArray(payload?.message)
+    const rawMessage = Array.isArray(payload?.message)
       ? payload.message.join(" ")
       : (payload?.message ??
         "Não foi possível concluir a solicitação. Tente novamente.");
-    throw new ApiError(message, response.status);
+    // Traduz a mensagem bruta da API para pt-BR amigável ao usuário final,
+    // sem expor detalhes internos da aplicação.
+    throw new ApiError(
+      translateApiError(rawMessage, response.status),
+      response.status,
+    );
   }
   return response.json() as Promise<AuthenticationResponse>;
 }
