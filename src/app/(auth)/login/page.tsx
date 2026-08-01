@@ -214,7 +214,7 @@ export default function LoginPage() {
     }
     if (!googleReady || !window.google) {
       setFormError(
-        "O Google está sendo preparado. Tente novamente em instantes.",
+        "O Google está sendo preparado. Atualize a página e tente novamente em instantes.",
       );
       return;
     }
