@@ -1,29 +1,30 @@
-# TODO — Correção: cadastro de produto mostra erro mesmo com 201
+# TODO — Redirecionamento pós-login por papel + proteção de rotas
 
 ## Causa raiz
 
-O backend `POST /stores/:slug/products` retorna `201` com o corpo sendo **apenas o UUID** do produto (string pura, não JSON — `return product.id;` no controller). O `apiClient` faz `JSON.parse(responseText)` incondicionalmente, então lança `SyntaxError` ao tentar parsear a string crua → a mutation rejeita → UI mostra "Erro ao criar produto", apesar do produto ter sido criado.
+- O claim `role` do JWT contém o enum Prisma (`USER`/`ADMIN`) — **não** distingue
+  Cliente de Funcionário/Proprietário. O cookie `userRole` era gravado a partir
+  desse claim, virando `"user"` para cliente e colaborador.
+- A página de login mandava **todo** usuário não-admin para `/painel` → cliente
+  via o painel do lojista.
+- O middleware deixava `"user"` passar em `/painel` (só bloqueava `"cliente"`/`"admin"`).
+- O cookie `userRole` não era gravado no login via Google.
+- Admin sem cookie `userRole` correto era redirecionado para o catálogo.
+
+## Fonte confiável
+
+`GET /me` retorna o papel efetivo: `"Cliente" | "Admin" | "Proprietário" | "Funcionário"`.
 
 ## Passos
 
-- [x] Investigar o fluxo de criação de produto (página, hook, api, api-client)
-- [x] Confirmar formato real da resposta no backend (controller e service)
-- [x] Editar `src/lib/api-client.ts` — tornar o parsing de resposta 2xx resiliente (se `JSON.parse` falhar, retornar o texto cru em vez de lançar erro)
-- [x] Editar `src/features/painel/api/store.ts` — normalizar a resposta do `createProduct` para `{ id: string }` (aceitar string pura ou objeto `{ id }`)
-- [x] Validar: `npx tsc --noEmit` sem erros
-- [x] Validar: cadastrar produto → mensagem de sucesso + redirect para `/painel/produtos/{id}/imagens`
-
-# TODO — UX de Upload de Imagens (botão Enviar + botão Salvar)
-
-## Contexto
-
-O `ProductImageUploader` enviava o upload automaticamente ao selecionar o arquivo, sem
-nenhum botão de "Enviar"/"Salvar". O usuário quer: selecionar arquivo → botão "Enviar"
-envia para a API → repetir até o máximo de 5 → botão "Salvar e concluir" sai da tela.
-
-## Passos (decisão final: manter upload automático + apenas botão "Salvar")
-
-- [x] `product-image-uploader.tsx` — mantido upload automático (sem botão "Enviar")
-- [x] `product-image-manager.tsx` — toast de sucesso por upload + botão "Salvar" (desabilitado sem imagens ou durante upload)
-- [x] `[productId]/imagens/page.tsx` — conectar `onSave` → `router.push("/painel/produtos")`
+- [x] Criar `src/lib/session-role.ts` — resolver papel efetivo via `/me` (fallback JWT)
+- [x] `login/route.ts` — gravar cookie `userRole` a partir do `/me` + retornar `user_role`
+- [x] `google/route.ts` — gravar cookie `userRole` a partir do `/me` + retornar `user_role`
+- [x] `refresh/route.ts` — manter/atualizar cookie `userRole` a partir do `/me`
+- [x] `logout/route.ts` — apagar cookie `userRole`
+- [x] `roles.ts` — adicionar `roleToDashboardPath(role)`
+- [x] `authenticate.ts` — retornar `user_role` da sessão
+- [x] `login/page.tsx` — rotear por papel: Admin → `/admin`, Proprietário/Funcionário → `/painel`, Cliente → `/`
+- [x] `cadastro/page.tsx` — mesmo roteamento por papel (login com Google/registro)
+- [x] `middleware.ts` — `/admin` exige `admin`; `/painel` exige colaborador/admin; cliente → `/`
 - [x] Validar: `npx tsc --noEmit` sem erros

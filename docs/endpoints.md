@@ -485,6 +485,23 @@ Este documento lista os 50 endpoints públicos e protegidos da API, método HTTP
   ]
   ```
 
+- GET `/stores/admin` — Listar todas lojas inclusive as inativas (Auth: `JwtAuthGuard` + `AdminAccessGuard`). Query: `?name=&?page=`.
+  Example response (200, array of `Store`):
+  ```json
+  [
+    {
+      "id": "a1b2c3d4-...",
+      "name": "Loja Exemplo",
+      "slug": "loja-exemplo",
+      "email": "contato@loja.com",
+      "description": "Loja de roupas",
+      "whatsapp": "+551199999999",
+      "logo_image_url": "https://cdn.example.com/vitrine-web/logo.png",
+      "createdAt": "2026-01-01T09:00:00.000Z"
+    }
+  ]
+  ```
+
 ---
 
 > **Observação:** Este documento lista todos os **50 endpoints** registrados em `src/http/http.module.ts`. Para detalhes sobre validação e payloads, consulte os esquemas Zod em `src/http/zod/schema` e as DTOs nos serviços correspondentes.

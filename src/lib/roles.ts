@@ -24,6 +24,21 @@ export function isCollaboratorRole(role: string | undefined | null): boolean {
 }
 
 /**
+ * Retorna o caminho de destino pós-login com base no papel do usuário.
+ * - "admin" → /admin
+ * - "proprietario" | "funcionario" → /painel
+ * - qualquer outro (cliente) → / (catálogo)
+ */
+export function roleToDashboardPath(role: string | undefined | null): string {
+  const normalized = normalizeRole(role);
+  if (normalized === "admin") return "/admin";
+  if (normalized === "proprietario" || normalized === "funcionario") {
+    return "/painel";
+  }
+  return "/";
+}
+
+/**
  * Decodifica o campo `role` de um JWT (access token) sem validar a assinatura.
  * Usado apenas para decisões de UI/roteamento — a autorização real é feita no
  * backend e no middleware com `jwtVerify`.

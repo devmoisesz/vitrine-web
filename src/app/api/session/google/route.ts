@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveUserRole } from "@/lib/session-role";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -9,9 +10,41 @@ export async function POST(request: Request) {
     body: await request.text(),
   });
   const body = await upstream.text();
-  if (!upstream.ok) return new NextResponse(body, { status: upstream.status, headers: { "Content-Type": upstream.headers.get("Content-Type") ?? "application/json" } });
-  const data = JSON.parse(body) as { access_token: string; refresh_token: string };
-  const response = NextResponse.json({ access_token: data.access_token });
-  response.cookies.set("refreshToken", data.refresh_token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" });
+  if (!upstream.ok)
+    return new NextResponse(body, {
+      status: upstream.status,
+      headers: {
+        "Content-Type":
+          upstream.headers.get("Content-Type") ?? "application/json",
+      },
+    });
+  const data = JSON.parse(body) as {
+    access_token: string;
+    refresh_token: string;
+  };
+
+  // Resolve o papel efetivo do usuário (GET /me) com fallback para o JWT.
+  const userRole = await resolveUserRole(data.access_token);
+
+  const response = NextResponse.json({
+    access_token: data.access_token,
+    user_role: userRole,
+  });
+  response.cookies.set("refreshToken", data.refresh_token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60,
+  });
+  if (userRole) {
+    response.cookies.set("userRole", userRole, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60,
+    });
+  }
   return response;
 }

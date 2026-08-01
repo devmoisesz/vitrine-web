@@ -1,31 +1,36 @@
 import { NextResponse } from "next/server";
-import { decodeJwtRole, normalizeRole } from "@/lib/roles";
+import { resolveUserRole } from "@/lib/session-role";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
-function sessionResponse(data: {
+async function sessionResponse(data: {
   access_token: string;
   refresh_token: string;
 }) {
-  const response = NextResponse.json({ access_token: data.access_token });
+  // Resolve o papel efetivo do usuário (GET /me distingue
+  // Cliente/Admin/Proprietário/Funcionário) com fallback para o JWT.
+  const userRole = await resolveUserRole(data.access_token);
+
+  const response = NextResponse.json({
+    access_token: data.access_token,
+    user_role: userRole,
+  });
   response.cookies.set("refreshToken", data.refresh_token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: 60 * 60, // 1h — alinhado ao refresh token do backend
   });
-  // Grava o role em um cookie legível pelo middleware. O refresh token pode
-  // não conter o claim `role` (só o access token tem), então usamos o access
-  // token como fonte para autorização nas rotas /admin e /painel.
-  // Guardamos o role normalizado (minúsculas, sem acento) para evitar
-  // problemas de encoding de caracteres acentuados em cookies.
-  const role = decodeJwtRole(data.access_token);
-  if (role) {
-    response.cookies.set("userRole", normalizeRole(role), {
+  // Grava o role em um cookie legível pelo middleware, normalizado
+  // (minúsculas, sem acento) para evitar problemas de encoding.
+  if (userRole) {
+    response.cookies.set("userRole", userRole, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
+      maxAge: 60 * 60,
     });
   }
   return response;

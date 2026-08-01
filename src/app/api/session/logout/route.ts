@@ -5,8 +5,14 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get("refreshToken")?.value;
-  await fetch(`${apiUrl}/logout`, { method: "POST", headers: refreshToken ? { Cookie: `refreshToken=${encodeURIComponent(refreshToken)}` } : undefined }).catch(() => undefined);
+  await fetch(`${apiUrl}/logout`, {
+    method: "POST",
+    headers: refreshToken
+      ? { Cookie: `refreshToken=${encodeURIComponent(refreshToken)}` }
+      : undefined,
+  }).catch(() => undefined);
   const response = new NextResponse(null, { status: 204 });
   response.cookies.delete("refreshToken");
+  response.cookies.delete("userRole");
   return response;
 }
