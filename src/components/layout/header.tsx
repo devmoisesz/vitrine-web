@@ -105,7 +105,10 @@ function HeaderContent() {
           />
         </Link>
 
-        <Link href="/lojas" className="absolute left-4 text-sm font-medium transition-opacity hover:opacity-70 md:left-8">
+        <Link
+          href="/lojas"
+          className="absolute left-4 text-sm font-medium transition-opacity hover:opacity-70 md:left-8"
+        >
           Lojas
         </Link>
 
@@ -170,7 +173,10 @@ function HeaderContent() {
                       <>Olá, {firstName}</>
                     )}
                   </span>
-                  <ChevronDown aria-hidden="true" className="hidden size-4 sm:block" />
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="hidden size-4 sm:block"
+                  />
                 </Menu.Trigger>
 
                 <Menu.Portal>
@@ -222,12 +228,20 @@ function HeaderContent() {
               </Link>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
-            >
-              Entrar
-            </Link>
+            <>
+              <Link
+                href="/cadastro"
+                className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
+              >
+                Criar Conta
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-full bg-background px-5 py-2 text-sm font-medium text-foreground transition-opacity hover:opacity-80"
+              >
+                Entrar
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -249,5 +263,9 @@ function HeaderContent() {
 }
 
 export function Header() {
-  return <Suspense fallback={null}><HeaderContent /></Suspense>;
+  return (
+    <Suspense fallback={null}>
+      <HeaderContent />
+    </Suspense>
+  );
 }
