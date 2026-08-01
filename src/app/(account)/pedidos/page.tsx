@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { OrderCard } from "@/components/orders/order-card";
@@ -22,12 +22,30 @@ function OrdersSkeleton() {
 }
 
 export default function OrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background">
+          <Header />
+          <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-12">
+            <OrdersSkeleton />
+          </main>
+        </div>
+      }
+    >
+      <OrdersPageContent />
+    </Suspense>
+  );
+}
+
+function OrdersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const listRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, isLoading: authLoading, accessToken } = useAuth();
   const requestedPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page =
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const orders = useOrders(page, accessToken);
 
   useEffect(() => {
@@ -79,7 +97,9 @@ export default function OrdersPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="mt-10 border border-dashed border-border p-12 text-center">
-            <p className="font-display text-lg">Você ainda não fez nenhum pedido.</p>
+            <p className="font-display text-lg">
+              Você ainda não fez nenhum pedido.
+            </p>
             <Link
               href="/"
               className="mt-6 inline-block bg-foreground px-6 py-2.5 text-sm text-background"

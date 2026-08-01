@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,21 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export default function PainelProdutosPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-6xl space-y-8">
+          <div className="h-10 w-52 animate-pulse rounded bg-gray-200" />
+          <div className="h-64 animate-pulse rounded bg-gray-200" />
+        </div>
+      }
+    >
+      <PainelProdutosPageContent />
+    </Suspense>
+  );
+}
+
+function PainelProdutosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { accessToken } = useAuth();

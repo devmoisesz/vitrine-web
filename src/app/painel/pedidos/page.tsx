@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { StoreOrdersTable } from "@/components/painel/store-orders-table";
@@ -8,15 +9,63 @@ import { AlertCircle } from "lucide-react";
 import { useStoreProfile } from "@/features/painel/hooks/use-store-profile";
 
 export default function PainelPedidosPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-6xl">
+          <div className="h-10 w-52 animate-pulse rounded bg-gray-200" />
+        </div>
+      }
+    >
+      <PainelPedidosPageContent />
+    </Suspense>
+  );
+}
+
+function PainelPedidosPageContent() {
   const searchParams = useSearchParams();
   const { accessToken } = useAuth();
   const profile = useStoreProfile(accessToken);
   const requestedPage = Number.parseInt(searchParams.get("page") ?? "1", 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const page =
+    Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const slug = profile.data?.store_slug;
 
-  if (profile.isLoading) return <div className="mx-auto max-w-6xl"><div className="h-10 w-52 animate-pulse rounded bg-gray-200" /></div>;
-  if (profile.isError || !accessToken || !slug) return <div className="mx-auto max-w-6xl rounded-xl border border-border bg-muted p-6"><p className="flex items-center gap-2 text-sm font-medium"><AlertCircle className="size-4" />Não foi possível identificar a loja vinculada à sua conta.</p><Button className="mt-4" variant="secondary" onClick={() => void profile.refetch()}>Tentar novamente</Button></div>;
+  if (profile.isLoading)
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="h-10 w-52 animate-pulse rounded bg-gray-200" />
+      </div>
+    );
+  if (profile.isError || !accessToken || !slug)
+    return (
+      <div className="mx-auto max-w-6xl rounded-xl border border-border bg-muted p-6">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <AlertCircle className="size-4" />
+          Não foi possível identificar a loja vinculada à sua conta.
+        </p>
+        <Button
+          className="mt-4"
+          variant="secondary"
+          onClick={() => void profile.refetch()}
+        >
+          Tentar novamente
+        </Button>
+      </div>
+    );
 
-  return <div className="mx-auto max-w-6xl space-y-8"><header><p className="eyebrow text-gray-500">{profile.data?.store_name ?? "Painel da loja"}</p><h1 className="mt-2 font-serif text-4xl sm:text-5xl">Pedidos</h1><p className="mt-3 text-sm text-gray-500">Histórico interno dos pedidos recebidos pela loja.</p></header><StoreOrdersTable slug={slug} page={page} accessToken={accessToken} /></div>;
+  return (
+    <div className="mx-auto max-w-6xl space-y-8">
+      <header>
+        <p className="eyebrow text-gray-500">
+          {profile.data?.store_name ?? "Painel da loja"}
+        </p>
+        <h1 className="mt-2 font-serif text-4xl sm:text-5xl">Pedidos</h1>
+        <p className="mt-3 text-sm text-gray-500">
+          Histórico interno dos pedidos recebidos pela loja.
+        </p>
+      </header>
+      <StoreOrdersTable slug={slug} page={page} accessToken={accessToken} />
+    </div>
+  );
 }
