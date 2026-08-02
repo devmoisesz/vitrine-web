@@ -95,14 +95,23 @@ export function PainelSidebar() {
               );
             })}
         </nav>
-        <button
-          onClick={handleLogout}
-          disabled={isLeaving}
-          className="mt-auto flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-black disabled:opacity-50"
-        >
-          <LogOut className="size-4" />
-          {isLeaving ? "Saindo..." : "Sair"}
-        </button>
+        <div className="mt-auto border-t border-gray-200 pt-4">
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-black"
+          >
+            Ver catálogo
+          </Link>
+          <button
+            onClick={handleLogout}
+            disabled={isLeaving}
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-black disabled:opacity-50"
+          >
+            <LogOut className="size-4" />
+            {isLeaving ? "Saindo..." : "Sair"}
+          </button>
+        </div>
       </aside>
     </>
   );
