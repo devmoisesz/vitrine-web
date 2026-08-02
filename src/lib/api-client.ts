@@ -17,7 +17,46 @@ export function getAccessToken() {
 
 export function subscribeToAccessToken(listener: () => void) {
   accessTokenListeners.add(listener);
-  return () => accessTokenListeners.delete(listener);
+  return () => {
+    accessTokenListeners.delete(listener);
+  };
+}
+
+// ─── Session expired listeners ─────────────────────────────────────────────
+
+const sessionExpiredListeners = new Set<() => void>();
+
+export function subscribeToSessionExpired(listener: () => void) {
+  sessionExpiredListeners.add(listener);
+  return () => {
+    sessionExpiredListeners.delete(listener);
+  };
+}
+
+function emitSessionExpired() {
+  sessionExpiredListeners.forEach((listener) => listener());
+}
+
+/**
+ * Decodifica o `exp` (epoch seconds) do access token JWT sem validar a
+ * assinatura. Retorna `null` se o token for inválido ou não tiver `exp`.
+ */
+export function getAccessTokenExpiry(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4 !== 0) base64 += "=";
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes)) as {
+      exp?: unknown;
+    };
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
 }
 
 export class ApiError extends Error {
@@ -45,7 +84,7 @@ let failedQueue: Array<{
   reject: (reason: unknown) => void;
 }> = [];
 
-function processQueue(error: unknown, token: string | null = null) {
+function processQueue(error: unknown) {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
@@ -67,6 +106,10 @@ export async function refreshSession(): Promise<boolean> {
   }
 
   isRefreshing = true;
+  // Se já havia um token ativo e o refresh falhar, significa que a sessão
+  // realmente expirou (diferente do load inicial, em que o usuário é visitante).
+  const hadActiveSession = Boolean(globalAccessToken);
+
   refreshPromise = (async () => {
     try {
       const response = await fetch("/api/session/refresh", {
@@ -86,11 +129,14 @@ export async function refreshSession(): Promise<boolean> {
         access_token: string;
       };
       setAccessToken(data.access_token);
-      processQueue(null, data.access_token);
+      processQueue(null);
       return true;
     } catch (error) {
       setAccessToken(null);
-      processQueue(error, null);
+      processQueue(error);
+      if (hadActiveSession) {
+        emitSessionExpired();
+      }
       return false;
     } finally {
       isRefreshing = false;
