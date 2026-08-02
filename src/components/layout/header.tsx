@@ -121,7 +121,7 @@ function HeaderContent() {
             Lojas
           </Link>
           <Link
-            href="/para-lojistas"
+            href="/sobre"
             className="text-sm font-medium transition-opacity hover:opacity-70"
           >
             Entenda a Vitrine Web

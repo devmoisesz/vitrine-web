@@ -5,7 +5,7 @@ import { LandingHero } from "@/components/landing/landing-hero";
 import { LandingHowItWorks } from "@/components/landing/landing-how-it-works";
 import { LandingProblemSection } from "@/components/landing/landing-problem-section";
 
-export default function ParaLojistasPage() {
+export default function SobrePage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
