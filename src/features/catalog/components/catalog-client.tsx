@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Header } from "@/components/layout/header";
@@ -30,6 +30,15 @@ export function CatalogClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const gridRef = useRef<HTMLDivElement>(null);
+  const demoAlertShown = useRef(false);
+
+  useEffect(() => {
+    if (demoAlertShown.current) return;
+    demoAlertShown.current = true;
+    window.alert(
+      "Ambiente de Demonstração: Os produtos e valores exibidos são meramente ilustrativos",
+    );
+  }, []);
 
   useCategories(initialCategories);
 
