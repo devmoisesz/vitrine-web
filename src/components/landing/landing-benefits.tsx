@@ -1,5 +1,4 @@
 const benefits = [
-  "Sem taxa por venda",
   "Sem gestão de carrinho ou pagamento online",
   "Você continua no controle da negociação e do relacionamento",
   "Uma vitrine profissional, sem precisar construir um site próprio",
