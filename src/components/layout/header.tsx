@@ -120,6 +120,12 @@ function HeaderContent() {
           >
             Lojas
           </Link>
+          <Link
+            href="/para-lojistas"
+            className="text-sm font-medium transition-opacity hover:opacity-70"
+          >
+            Entenda a Vitrine Web
+          </Link>
           {dashboard ? (
             <Link
               href={dashboard.href}
