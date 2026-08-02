@@ -5,18 +5,37 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown, LogOut, Search, ShoppingBag, X } from "lucide-react";
+import {
+  ChevronDown,
+  LayoutDashboard,
+  LogOut,
+  Search,
+  ShoppingBag,
+  Store,
+  X,
+} from "lucide-react";
 
 import whiteLogo from "../../../img/vitrine-web-white.png";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { logout } from "@/features/auth/api/authenticate";
 import { useCartCount } from "@/features/cart/hooks/use-cart-count";
 import { useProfile } from "@/features/profile/hooks/use-profile";
+import { isAdminRole, isCollaboratorRole } from "@/lib/roles";
 
 function HeaderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, accessToken, isLoading: isAuthLoading } = useAuth();
+  const {
+    isAuthenticated,
+    accessToken,
+    isLoading: isAuthLoading,
+    role,
+  } = useAuth();
+  const dashboard = !isAuthLoading && isAdminRole(role)
+    ? { href: "/admin", label: "Painel admin", Icon: LayoutDashboard }
+    : !isAuthLoading && isCollaboratorRole(role)
+      ? { href: "/painel", label: "Painel da loja", Icon: Store }
+      : null;
 
   const [isSearchOpen, setIsSearchOpen] = useState(
     Boolean(searchParams.get("name")),
@@ -94,12 +113,22 @@ function HeaderContent() {
   return (
     <header className="sticky top-0 z-40 bg-foreground text-background">
       <div className="relative mx-auto flex h-24 max-w-[1400px] items-center px-3 md:h-32 md:px-8">
-        <Link
-          href="/lojas"
-          className="text-sm font-medium transition-opacity hover:opacity-70 md:absolute md:left-8"
-        >
-          Lojas
-        </Link>
+        <div className="flex items-center gap-4 md:absolute md:left-8">
+          <Link
+            href="/lojas"
+            className="text-sm font-medium transition-opacity hover:opacity-70"
+          >
+            Lojas
+          </Link>
+          {dashboard ? (
+            <Link
+              href={dashboard.href}
+              className="hidden text-sm font-medium transition-opacity hover:opacity-70 md:inline"
+            >
+              {dashboard.label}
+            </Link>
+          ) : null}
+        </div>
 
         <Link href="/" className="mx-auto transition-opacity hover:opacity-80">
           <Image
@@ -113,6 +142,15 @@ function HeaderContent() {
         </Link>
 
         <div className="flex items-center gap-1.5 md:absolute md:right-8 md:gap-3">
+          {dashboard ? (
+            <Link
+              href={dashboard.href}
+              aria-label={dashboard.label}
+              className="flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20 md:hidden"
+            >
+              <dashboard.Icon className="size-5" />
+            </Link>
+          ) : null}
           <div
             className="hidden items-center overflow-hidden border-b transition-all duration-200 md:flex"
             style={{

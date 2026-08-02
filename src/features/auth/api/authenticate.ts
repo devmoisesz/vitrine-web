@@ -43,7 +43,7 @@ async function saveSession(
   request: Promise<AuthenticationResponse>,
 ): Promise<AuthenticationResponse> {
   const session = await request;
-  setAccessToken(session.access_token);
+  setAccessToken(session.access_token, session.user_role);
   return session;
 }
 

@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   getAccessToken,
+  getUserRole,
   subscribeToAccessToken,
   subscribeToSessionExpired,
   refreshSession,
@@ -20,6 +21,7 @@ import {
 
 export interface AuthContextValue {
   user: { id: string; name: string; email: string } | null;
+  role: string | null;
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -31,6 +33,7 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
+  role: null,
   accessToken: null,
   isAuthenticated: false,
   isLoading: true,
@@ -49,6 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const accessToken = useSyncExternalStore(
     subscribeToAccessToken,
     getAccessToken,
+    () => null,
+  );
+  const role = useSyncExternalStore(
+    subscribeToAccessToken,
+    getUserRole,
     () => null,
   );
 
@@ -140,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: null,
+        role,
         accessToken,
         isAuthenticated: Boolean(accessToken),
         isLoading: isInitialLoading,

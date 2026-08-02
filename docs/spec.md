@@ -1,182 +1,129 @@
-# Vitrine Web — Spec: Dados da Loja + Logo (Painel do Lojista)
+# Vitrine Web — Spec: Acesso ao Painel a partir do Header (Consumidor)
 
-## 1. Contexto
+## 1. Contexto / Problema
 
-Rota: `src/app/painel/loja/page.tsx`. Acessível só por `Proprietário` (todas as rotas
-desta tela exigem esse papel especificamente, não `Funcionário`).
+Colaboradores (`Funcionário`/`Proprietário`) e `Admin` também navegam pelo site público
+(ex: para ver como a própria loja aparece no catálogo). Hoje, depois de logar, fechar a
+aba e voltar pela URL normal do site, essas pessoas **ficam presas no catálogo público**
+— não existe nenhum link visível de volta para `/painel` ou `/admin`. A única forma de
+chegar lá é digitando a URL de cor.
 
-Três seções: **Dados gerais**, **Formas de pagamento e entrega**, **Logo**, e
-**Endereço da loja**.
+**Objetivo:** adicionar, no `Header` do site (o mesmo componente já usado na Home e em
+todas as páginas públicas), um link condicional — visível só para quem tem o papel
+correspondente — que leva direto para o painel certo.
 
-## 2. Contrato de API
+## 2. Regra de Negócio
 
-```
-GET /store/:slug
-Auth: deveria ser Public (ver documento de pendências da API) — usado aqui autenticado
-para carregar os dados atuais do formulário
-Resposta 200:
-{
-  "name": "...",
-  "logo_url": "...",
-  "description": "...",
-  "whatsapp": "...",
-  "payment_methods": ["PIX", "DINHEIRO"],
-  "delivery_methods": ["RETIRADA_LOJA", "MOTOBOY"],
-  "address": Address | null
-}
-```
+- **`role === 'Proprietário'` ou `role === 'Funcionário'`** → mostrar link **"Painel da
+  loja"**, apontando para `/painel`
+- **`role === 'Admin'`** → mostrar link **"Painel admin"**, apontando para `/admin`
+- **`role === 'Cliente'` ou usuário não autenticado** → nenhum dos dois aparece (nada
+  muda para o fluxo atual)
+- Só um dos dois pode aparecer por vez — um usuário tem um papel só, nunca os dois
+  simultaneamente
+- Fonte do dado: `role` já disponível via `useAuth()` (mesmo hook já usado no Header
+  para decidir entre carrinho e botão de login) — não é necessária nenhuma chamada de
+  API nova
 
-```
-PUT /store/:slug/edit
-Auth: PROPRIETARIO
-Body: { newName, newEmail, newDescription, newWhatsapp, newPaymentMethods, newDeliveryMethods }
-Resposta: 204
+## 3. Onde entra no layout
 
-(nomes de campo exatos assumidos seguindo o padrão "new" já usado em editProductBodySchema
-— confirmar se bateu exatamente assim na implementação)
-```
+**Desktop (`md:` e acima):** texto normal, ao lado do link "Lojas" já existente no
+Header, no mesmo grupo de navegação (antes dos ícones de busca/carrinho).
 
-```
-POST /stores/:slug/logo          (primeira vez, loja ainda sem logo)
-Auth: PROPRIETARIO
-FormFile: file
-Resposta: 201
+**Mobile:** **não repetir o mesmo link em formato de texto** — o Header no mobile já é
+apertado (logo + busca expansível + carrinho/login), e adicionar mais um link de texto
+ali arrisca quebrar layout ou forçar quebra de linha feia quando a busca expande. Em vez
+disso, no mobile o link vira **um ícone compacto**, com `aria-label` descritivo (sem
+texto visível, mas acessível):
+- Colaborador (Funcionário/Proprietário): ícone tipo `Store` (lucide-react),
+  `aria-label="Painel da loja"`
+- Admin: ícone tipo `LayoutDashboard` (lucide-react), `aria-label="Painel admin"`
 
-PATCH /stores/:slug/logo/change   (loja já tem logo, substituindo)
-Auth: PROPRIETARIO
-FormFile: file
-Resposta: 200
-
-DELETE /stores/:slug/logo/delete
-Auth: PROPRIETARIO
-Resposta: 204
-```
+Posicionado no mesmo grupo dos outros ícones do Header (perto do ícone de busca), mesmo
+tamanho (`size-5`) e mesmo espaçamento (`gap-3`) já usados nos outros ícones da barra,
+para não alterar a altura/densidade do Header em nenhum breakpoint.
 
 ```
-POST /address/:slug/register/     (loja ainda não tem endereço)
-Auth: PROPRIETARIO
-Body: { label, cep, state, city, neighborhood, street, number, complement }
-Resposta: 201
+Desktop (md:+):
+[Logo]                    [Lojas] [Painel da loja]        [🔍] [🛒/Entrar]
 
-PUT /store/:slug/address           (loja já tem endereço, editando)
-Auth: PROPRIETARIO
-Body: { cep, state, city, neighborhood, street, number, complement }
-Resposta: 204
+Mobile (< md:):
+[Logo]                           [🏬] [🔍] [🛒/Entrar]
+                                   ↑
+                          ícone do painel, só quando aplicável
 ```
 
-## 3. Regras de Negócio
+Usar a mesma classe de breakpoint já usada em outros componentes do projeto (`hidden
+md:inline` no texto do desktop, `md:hidden` no ícone do mobile) — não introduzir um
+breakpoint novo/diferente do resto do projeto.
 
-- **Uma loja só pode ter um endereço** — diferente do Perfil do cliente (múltiplos
-  endereços com seletor), aqui é sempre **um único bloco**: se não existe, mostra
-  formulário de cadastro; se existe, mostra os dados com opção de editar (nunca "+
-  adicionar outro")
-- **Logo: três estados possíveis** — sem logo (mostra upload), com logo (mostra
-  logo atual + opções "Trocar" e "Remover"). O endpoint usado depende do estado atual
-  (`POST` só na primeira vez, `PATCH` para trocar uma já existente)
-- **Formas de pagamento/entrega:** checkboxes a partir dos enums já usados na Vitrine
-  da Loja e no Checkout — reaproveitar o mesmo mapeamento de rótulos em português
-  (`PIX`, `DINHEIRO`, `CARTAO_ENTREGA`, `CARTAO_ONLINE` / `RETIRADA_LOJA`,
-  `ENTREGA_PROPRIA`, `CORREIOS`, `MOTOBOY`)
+## 4. Comportamento
 
-## 4. Layout
-
-```
-┌──────────────────────────────────────────┐
-│  Dados da Loja                             │
-│                                            │
-│  ── Dados gerais ──────────────────────    │
-│  Nome        [_____________________]      │
-│  E-mail      [_____________________]      │
-│  WhatsApp    [_____________________]      │
-│  Descrição   [_____________________]      │
-│              [ Salvar ]                    │
-│                                            │
-│  ── Formas de pagamento ───────────────    │
-│  ☑ Pix  ☐ Dinheiro  ☑ Cartão na entrega    │
-│  ☐ Cartão online                           │
-│                                            │
-│  ── Formas de entrega ─────────────────    │
-│  ☑ Retirada na loja  ☐ Entrega própria     │
-│  ☐ Correios  ☑ Motoboy                     │
-│              [ Salvar formas ]              │
-│                                            │
-│  ── Logo ──────────────────────────────    │
-│  [logo atual]   [ Trocar ]  [ Remover ]    │
-│                                            │
-│  ── Endereço ──────────────────────────    │
-│  Rua Exemplo, 123 - Centro                 │
-│  São Paulo/SP - 01001-000                  │
-│              [ Editar endereço ]            │
-└──────────────────────────────────────────┘
-```
-WhatsApp agora é editável (`newWhatsapp` no `PUT /store/:slug/edit`) — aplicar máscara
-de telefone brasileiro no input, mesmo padrão já usado no cadastro de loja do Admin.
+- Clique leva direto para `/painel` ou `/admin` (sem confirmação, sem interstitial —
+  é só navegação)
+- Como `/painel` e `/admin` já são protegidos pelo `middleware.ts` (decodifica o
+  `refreshToken` e valida o `role`), não há necessidade de duplicar essa validação
+  aqui — o link só *aparece* condicionalmente por UX, a proteção de acesso real já
+  existe em outra camada
+- Se por algum motivo o `role` mudar durante a sessão (ex: token expirou e o refresh
+  trouxe dados diferentes), o link deve refletir isso automaticamente, já que
+  `useAuth()` é reativo
 
 ## 5. Estados
 
-- Loading inicial: skeleton nas quatro seções
-- Erro ao carregar: mensagem + botão "Tentar novamente"
-- Sucesso ao salvar cada seção: confirmação inline temporária, sem navegar (mesmo
-  padrão já usado na tela de Perfil do cliente)
-- Upload de logo: estado de loading no botão durante o envio; erro de tipo/tamanho de
-  arquivo tratado igual à spec de Gestão de Imagens do Produto (mesmos limites: png/jpg/
-  jpeg/webp, 2MB)
+Nenhum estado novo de loading/erro — o link só depende do `role` que já está disponível
+no estado de autenticação carregado no momento em que o Header renderiza. Se
+`useAuth()` ainda estiver carregando (`isLoading`), simplesmente não mostrar nenhum dos
+dois links até resolver — evita um "flash" mostrando/escondendo o link.
 
-## 6. Componentes
+## 6. Componentes Afetados
 
 ```
-app/painel/loja/page.tsx
-
-components/painel/
-├── store-general-form.tsx        # nome, e-mail, descrição
-├── payment-methods-checklist.tsx  # checkboxes de payment_methods
-├── delivery-methods-checklist.tsx # checkboxes de delivery_methods
-├── store-logo-manager.tsx         # upload/trocar/remover logo
-└── store-address-section.tsx      # cadastrar OU editar (nunca lista)
-
-features/painel/hooks/
-├── use-store-settings.ts          # GET /store/:slug (autenticado)
-├── use-update-store.ts            # PUT /store/:slug/edit
-├── use-upload-store-logo.ts        # POST /stores/:slug/logo
-├── use-change-store-logo.ts        # PATCH /stores/:slug/logo/change
-├── use-delete-store-logo.ts        # DELETE /stores/:slug/logo/delete
-└── use-save-store-address.ts       # POST /address/:slug/register/ + PUT /store/:slug/address
+components/layout/header.tsx   # único arquivo a alterar — adicionar lógica condicional
+                                 # de renderização do link, reaproveitando o padrão
+                                 # visual do link "Lojas" já existente
 ```
+
+Não é necessário criar componente novo — é uma adição pequena dentro do `Header` já
+existente.
 
 ## 7. Prompt Pronto para o Agente de IA
 
 ```
 Contexto: projeto Next.js 14 (App Router) + TypeScript strict + Tailwind v4 do
-marketplace Vitrine Web. Tokens de design em src/app/globals.css. Stack: TanStack Query,
-React Hook Form + Zod, componentes de UI seguindo Base UI + tailwind-variants +
-tailwind-merge (Button, Input já existem em src/components/ui/). O mapeamento de rótulos
-de payment_methods/delivery_methods (enum -> português) já existe (usado na Vitrine da
-Loja e no Checkout) — reaproveitar, não recriar.
+marketplace Vitrine Web. O componente Header já existe em
+src/components/layout/header.tsx, já usa useAuth() (de
+src/features/auth/hooks/use-auth.ts) para decidir entre mostrar o carrinho ou o botão
+de login, e já tem um link "Lojas" apontando para /lojas.
 
-Tarefa: implementar a tela de dados da loja em src/app/painel/loja/page.tsx, seguindo
-rigorosamente o documento "Spec: Dados da Loja + Logo (Painel do Lojista)". Acessível
-só para role === 'Proprietário' (adicionar verificação client-side além do middleware
-já existente em /painel, que só garante Funcionário OU Proprietário de forma ampla).
+Tarefa: adicionar ao Header um link condicional de acesso ao painel, baseado no campo
+role do usuário autenticado (já disponível via useAuth()), seguindo o documento
+"Spec: Acesso ao Painel a partir do Header".
 
-Seções:
-1. Dados gerais (nome, e-mail, WhatsApp com máscara de telefone brasileiro, descrição)
-   via PUT /store/:slug/edit
-2. Formas de pagamento e entrega: checkboxes a partir dos enums já usados no projeto,
-   também via PUT /store/:slug/edit (mesmo formulário/submit da seção 1, ou botão de
-   salvar próprio — à escolha, mas os dados vêm todos do mesmo endpoint)
-3. Logo: se a loja não tiver logo, mostrar upload (POST /stores/:slug/logo); se já
-   tiver, mostrar a logo atual com opções "Trocar" (PATCH /stores/:slug/logo/change) e
-   "Remover" (DELETE /stores/:slug/logo/delete) — mesmas validações de arquivo da spec
-   de Gestão de Imagens do Produto (png/jpg/jpeg/webp, máximo 2MB)
-4. Endereço: se a loja não tiver endereço cadastrado, mostrar formulário de cadastro
-   (POST /address/:slug/register/, com autopreenchimento via ViaCEP); se já tiver,
-   mostrar os dados com opção "Editar" (PUT /store/:slug/address) — NUNCA permitir
-   cadastrar mais de um endereço para a loja (diferente do Perfil do cliente)
+Regras:
+- role === 'Proprietário' ou role === 'Funcionário' → mostrar link "Painel da loja"
+  apontando para /painel
+- role === 'Admin' → mostrar link "Painel admin" apontando para /admin
+- role === 'Cliente' ou usuário não autenticado → nenhum dos dois aparece
+- Enquanto useAuth() estiver em isLoading, não mostrar nenhum dos dois (evita flash)
 
-Cada seção salva de forma independente (botão de salvar próprio), com confirmação
-inline ao salvar com sucesso, sem navegar para outra tela.
+Responsividade — CRÍTICO, não quebrar o Header no mobile:
+- Desktop (md: e acima): link em texto, ao lado do link "Lojas" já existente, mesmo
+  padrão visual (classe hidden md:inline no texto)
+- Mobile (abaixo de md:): NÃO repetir como texto — usar um ícone compacto do
+  lucide-react (Store para colaborador, LayoutDashboard para admin) com aria-label
+  descritivo ("Painel da loja" / "Painel admin"), no mesmo grupo dos outros ícones do
+  Header (perto do ícone de busca), mesmo tamanho (size-5) e espaçamento (gap-3) já
+  usados ali. Usar classe md:hidden no ícone. Não deve alterar a altura do Header nem
+  causar quebra de linha em nenhum breakpoint, mesmo com a busca expandida
+- Não duplicar nenhuma validação de acesso — /painel e /admin já são protegidos pelo
+  middleware.ts existente, este link/ícone é só uma questão de navegação/descoberta
 
-Toda chamada HTTP usa credentials: 'include'.
+Não é necessária nenhuma chamada de API nova — o role já vem de useAuth().
 
-Não implementar: histórico de alterações, múltiplos endereços de loja — fora do escopo.
+Testar manualmente (ou via viewport de dev tools) em pelo menos 375px de largura,
+garantindo que o Header não quebra com o ícone novo + busca fechada e + busca aberta.
+
+Não implementar: menu hambúrguer novo, badge de notificação nesse link — fora do
+escopo desta task.
 ```

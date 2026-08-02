@@ -4,15 +4,21 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://vitrine-web-api.onrender.com";
 
 let globalAccessToken: string | null = null;
+let globalUserRole: string | null = null;
 const accessTokenListeners = new Set<() => void>();
 
-export function setAccessToken(token: string | null) {
+export function setAccessToken(token: string | null, role?: string | null) {
   globalAccessToken = token;
+  globalUserRole = token ? (role ?? globalUserRole) : null;
   accessTokenListeners.forEach((listener) => listener());
 }
 
 export function getAccessToken() {
   return globalAccessToken;
+}
+
+export function getUserRole() {
+  return globalUserRole;
 }
 
 export function subscribeToAccessToken(listener: () => void) {
@@ -127,8 +133,9 @@ export async function refreshSession(): Promise<boolean> {
 
       const data = (await response.json()) as {
         access_token: string;
+        user_role?: string | null;
       };
-      setAccessToken(data.access_token);
+      setAccessToken(data.access_token, data.user_role);
       processQueue(null);
       return true;
     } catch (error) {
