@@ -5,13 +5,9 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { PersonalDataSection } from "@/components/profile/personal-data-section";
-import { AddressList } from "@/components/profile/address-list";
-import { AddressFormDialog } from "@/components/profile/address-form-dialog";
 import { PasswordSection } from "@/components/profile/password-section";
-import type { Address } from "@/features/profile/api/profile";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useProfile } from "@/features/profile/hooks/use-profile";
-import { useAddresses } from "@/features/profile/hooks/use-addresses";
 
 function ProfileSkeleton() {
   return (
@@ -30,9 +26,6 @@ export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, accessToken } = useAuth();
   const profile = useProfile(accessToken);
-  const addresses = useAddresses(accessToken);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -44,17 +37,8 @@ export default function ProfilePage() {
     return () => window.clearTimeout(timeout);
   }, [successMessage]);
 
-  const openAdd = () => {
-    setSelectedAddress(null);
-    setDialogOpen(true);
-  };
-  const openEdit = (address: Address) => {
-    setSelectedAddress(address);
-    setDialogOpen(true);
-  };
   const retry = () => {
     void profile.refetch();
-    void addresses.refetch();
   };
 
   if (authLoading)
@@ -67,7 +51,7 @@ export default function ProfilePage() {
       </div>
     );
   if (!isAuthenticated || !accessToken) return null;
-  if (profile.isLoading || addresses.isLoading)
+  if (profile.isLoading)
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -76,7 +60,7 @@ export default function ProfilePage() {
         </main>
       </div>
     );
-  if (profile.isError || addresses.isError || !profile.data)
+  if (profile.isError || !profile.data)
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -106,7 +90,7 @@ export default function ProfilePage() {
           Perfil
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Gerencie seus dados, endereços e preferências de acesso.
+          Gerencie seus dados e preferências de acesso.
         </p>
         {successMessage && (
           <p
@@ -122,11 +106,6 @@ export default function ProfilePage() {
             accessToken={accessToken}
             onSuccess={setSuccessMessage}
           />
-          <AddressList
-            addresses={addresses.data ?? []}
-            onAdd={openAdd}
-            onEdit={openEdit}
-          />
           {showPassword && (
             <PasswordSection
               accessToken={accessToken}
@@ -135,13 +114,6 @@ export default function ProfilePage() {
           )}
         </div>
       </main>
-      <AddressFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        address={selectedAddress}
-        accessToken={accessToken}
-        onSuccess={setSuccessMessage}
-      />
     </div>
   );
 }

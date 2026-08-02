@@ -1,6 +1,6 @@
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Address } from "@/features/profile/api/profile";
+import type { Address } from "@/features/address/api/address";
 
 export function AddressCard({
   address,

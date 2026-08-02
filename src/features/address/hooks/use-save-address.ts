@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { saveAddress, type AddressInput } from "../api/profile";
+import { saveAddress, type AddressInput } from "../api/address";
 
 export function useSaveAddress(accessToken: string | null) {
   const queryClient = useQueryClient();

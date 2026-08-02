@@ -98,6 +98,7 @@ export default function RegisterPage() {
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: onGoogleCredential,
+      use_fedcm_for_prompt: false,
     });
     setGoogleReady(true);
   }

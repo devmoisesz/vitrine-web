@@ -1,129 +1,115 @@
-# Vitrine Web — Spec: Acesso ao Painel a partir do Header (Consumidor)
+# Vitrine Web — Spec: Menu do Usuário (Header) + Página de Endereços
 
-## 1. Contexto / Problema
+## 1. Contexto
 
-Colaboradores (`Funcionário`/`Proprietário`) e `Admin` também navegam pelo site público
-(ex: para ver como a própria loja aparece no catálogo). Hoje, depois de logar, fechar a
-aba e voltar pela URL normal do site, essas pessoas **ficam presas no catálogo público**
-— não existe nenhum link visível de volta para `/painel` ou `/admin`. A única forma de
-chegar lá é digitando a URL de cor.
+Duas mudanças relacionadas:
+1. Reorganizar o menu dropdown do ícone 👤 no Header, adicionando "Meu Perfil" e
+   "Meus Endereços"
+2. Extrair a gestão de endereços — hoje dentro da tela de Perfil — para uma página
+   própria (`/enderecos`), evitando duplicar essa lógica em dois lugares
 
-**Objetivo:** adicionar, no `Header` do site (o mesmo componente já usado na Home e em
-todas as páginas públicas), um link condicional — visível só para quem tem o papel
-correspondente — que leva direto para o painel certo.
+## 2. Menu do Usuário (dropdown do ícone 👤)
 
-## 2. Regra de Negócio
-
-- **`role === 'Proprietário'` ou `role === 'Funcionário'`** → mostrar link **"Painel da
-  loja"**, apontando para `/painel`
-- **`role === 'Admin'`** → mostrar link **"Painel admin"**, apontando para `/admin`
-- **`role === 'Cliente'` ou usuário não autenticado** → nenhum dos dois aparece (nada
-  muda para o fluxo atual)
-- Só um dos dois pode aparecer por vez — um usuário tem um papel só, nunca os dois
-  simultaneamente
-- Fonte do dado: `role` já disponível via `useAuth()` (mesmo hook já usado no Header
-  para decidir entre carrinho e botão de login) — não é necessária nenhuma chamada de
-  API nova
-
-## 3. Onde entra no layout
-
-**Desktop (`md:` e acima):** texto normal, ao lado do link "Lojas" já existente no
-Header, no mesmo grupo de navegação (antes dos ícones de busca/carrinho).
-
-**Mobile:** **não repetir o mesmo link em formato de texto** — o Header no mobile já é
-apertado (logo + busca expansível + carrinho/login), e adicionar mais um link de texto
-ali arrisca quebrar layout ou forçar quebra de linha feia quando a busca expande. Em vez
-disso, no mobile o link vira **um ícone compacto**, com `aria-label` descritivo (sem
-texto visível, mas acessível):
-- Colaborador (Funcionário/Proprietário): ícone tipo `Store` (lucide-react),
-  `aria-label="Painel da loja"`
-- Admin: ícone tipo `LayoutDashboard` (lucide-react), `aria-label="Painel admin"`
-
-Posicionado no mesmo grupo dos outros ícones do Header (perto do ícone de busca), mesmo
-tamanho (`size-5`) e mesmo espaçamento (`gap-3`) já usados nos outros ícones da barra,
-para não alterar a altura/densidade do Header em nenhum breakpoint.
-
+### Ordem final dos itens
 ```
-Desktop (md:+):
-[Logo]                    [Lojas] [Painel da loja]        [🔍] [🛒/Entrar]
+┌─────────────────────┐
+│ Meu Perfil            │ → /perfil
+│ Meus Pedidos           │ → /pedidos
+│ Meus Carrinhos         │ → /carrinhos
+│ Meus Endereços         │ → /enderecos
+├─────────────────────┤
+│ Sair                   │ → POST /logout
+└─────────────────────┘
+```
+- "Meu Perfil" entra **no topo**, acima de "Meus Pedidos"
+- "Meus Endereços" entra **logo abaixo de "Meus Carrinhos"**, antes do divisor e do
+  "Sair"
+- Nenhuma mudança de comportamento nos itens que já existem (Meus Pedidos, Meus
+  Carrinhos, Sair continuam levando para onde já levam)
 
-Mobile (< md:):
-[Logo]                           [🏬] [🔍] [🛒/Entrar]
-                                   ↑
-                          ícone do painel, só quando aplicável
+## 3. Extrair Endereços do Perfil para `/enderecos`
+
+### O que muda na tela de Perfil (`/perfil`)
+- **Remover a seção "Endereços"** inteira (lista de cards, botão de adicionar, Dialog
+  de criar/editar) — passa a viver só em `/enderecos`
+- Perfil fica com duas seções: **Dados Pessoais** e **Segurança** (troca de senha)
+- Os componentes já existentes (`address-list.tsx`, `address-form-dialog.tsx`,
+  `address-card.tsx`, hooks `use-addresses.ts`/`use-save-address.ts`) **não são
+  recriados** — só são movidos de `components/profile/` para `components/address/` (ou
+  mantidos onde estão, só deixando de ser importados pelo Perfil) e passam a ser usados
+  pela nova página
+
+### Nova página: `/enderecos`
+
+Contrato de API — **já documentado na spec original do Perfil, sem mudança nenhuma**:
+```
+GET /me/addresses?page=
+POST /address/register
+PUT /me/addressess/:addressId
 ```
 
-Usar a mesma classe de breakpoint já usada em outros componentes do projeto (`hidden
-md:inline` no texto do desktop, `md:hidden` no ícone do mobile) — não introduzir um
-breakpoint novo/diferente do resto do projeto.
+Layout: exatamente o que já estava dentro da seção "Endereços" do Perfil — lista de
+cards (label + endereço formatado), botão "+ Adicionar endereço" abrindo Dialog com
+CEP autopreenchido via ViaCEP (campos sempre editáveis depois do autopreenchimento),
+mesmo comportamento já especificado antes. **Sem exclusão de endereço** — mesma
+limitação já registrada (API não tem endpoint de delete).
 
-## 4. Comportamento
+### Estados
+Mesmos já especificados: loading (skeleton dos cards), vazio (texto + botão de
+adicionar), erro (mensagem + retry).
 
-- Clique leva direto para `/painel` ou `/admin` (sem confirmação, sem interstitial —
-  é só navegação)
-- Como `/painel` e `/admin` já são protegidos pelo `middleware.ts` (decodifica o
-  `refreshToken` e valida o `role`), não há necessidade de duplicar essa validação
-  aqui — o link só *aparece* condicionalmente por UX, a proteção de acesso real já
-  existe em outra camada
-- Se por algum motivo o `role` mudar durante a sessão (ex: token expirou e o refresh
-  trouxe dados diferentes), o link deve refletir isso automaticamente, já que
-  `useAuth()` é reativo
-
-## 5. Estados
-
-Nenhum estado novo de loading/erro — o link só depende do `role` que já está disponível
-no estado de autenticação carregado no momento em que o Header renderiza. Se
-`useAuth()` ainda estiver carregando (`isLoading`), simplesmente não mostrar nenhum dos
-dois links até resolver — evita um "flash" mostrando/escondendo o link.
-
-## 6. Componentes Afetados
+## 4. Componentes
 
 ```
-components/layout/header.tsx   # único arquivo a alterar — adicionar lógica condicional
-                                 # de renderização do link, reaproveitando o padrão
-                                 # visual do link "Lojas" já existente
+components/address/                 # renomeado de components/profile/ (só o que é
+                                      # específico de endereço)
+├── address-list.tsx
+├── address-form-dialog.tsx
+└── address-card.tsx
+
+app/(account)/
+├── perfil/page.tsx                  # atualizado: remove a seção de endereços
+└── enderecos/page.tsx               # nova rota
+
+features/address/                    # renomeado de features/profile/ (só o que é
+                                      # específico de endereço)
+├── hooks/
+│   ├── use-addresses.ts
+│   ├── use-save-address.ts
+│   └── use-cep-lookup.ts
+└── api/
+    └── fetch-cep.ts
 ```
 
-Não é necessário criar componente novo — é uma adição pequena dentro do `Header` já
-existente.
-
-## 7. Prompt Pronto para o Agente de IA
+## 5. Prompt Pronto para o Agente de IA
 
 ```
 Contexto: projeto Next.js 14 (App Router) + TypeScript strict + Tailwind v4 do
-marketplace Vitrine Web. O componente Header já existe em
-src/components/layout/header.tsx, já usa useAuth() (de
-src/features/auth/hooks/use-auth.ts) para decidir entre mostrar o carrinho ou o botão
-de login, e já tem um link "Lojas" apontando para /lojas.
+marketplace Vitrine Web. As telas de Perfil (src/app/(account)/perfil/page.tsx) e o
+menu dropdown do ícone de usuário no Header já existem e estão implementados.
 
-Tarefa: adicionar ao Header um link condicional de acesso ao painel, baseado no campo
-role do usuário autenticado (já disponível via useAuth()), seguindo o documento
-"Spec: Acesso ao Painel a partir do Header".
+Tarefa: seguindo rigorosamente o documento "Spec: Menu do Usuário (Header) + Página de
+Endereços", fazer duas mudanças:
 
-Regras:
-- role === 'Proprietário' ou role === 'Funcionário' → mostrar link "Painel da loja"
-  apontando para /painel
-- role === 'Admin' → mostrar link "Painel admin" apontando para /admin
-- role === 'Cliente' ou usuário não autenticado → nenhum dos dois aparece
-- Enquanto useAuth() estiver em isLoading, não mostrar nenhum dos dois (evita flash)
+1. No menu dropdown do ícone 👤 do Header:
+   - Adicionar "Meu Perfil" no topo da lista, acima de "Meus Pedidos", apontando para
+     /perfil
+   - Adicionar "Meus Endereços" logo abaixo de "Meus Carrinhos", antes do divisor e do
+     "Sair", apontando para /enderecos (rota nova, criada no passo 2)
+   - Não alterar nenhum outro item existente (Meus Pedidos, Meus Carrinhos, Sair)
 
-Responsividade — CRÍTICO, não quebrar o Header no mobile:
-- Desktop (md: e acima): link em texto, ao lado do link "Lojas" já existente, mesmo
-  padrão visual (classe hidden md:inline no texto)
-- Mobile (abaixo de md:): NÃO repetir como texto — usar um ícone compacto do
-  lucide-react (Store para colaborador, LayoutDashboard para admin) com aria-label
-  descritivo ("Painel da loja" / "Painel admin"), no mesmo grupo dos outros ícones do
-  Header (perto do ícone de busca), mesmo tamanho (size-5) e espaçamento (gap-3) já
-  usados ali. Usar classe md:hidden no ícone. Não deve alterar a altura do Header nem
-  causar quebra de linha em nenhum breakpoint, mesmo com a busca expandida
-- Não duplicar nenhuma validação de acesso — /painel e /admin já são protegidos pelo
-  middleware.ts existente, este link/ícone é só uma questão de navegação/descoberta
+2. Extrair a gestão de endereços de dentro do Perfil para uma página própria:
+   - Criar src/app/(account)/enderecos/page.tsx reaproveitando EXATAMENTE os
+     componentes e hooks que já implementam a seção "Endereços" dentro do Perfil hoje
+     (lista de cards, Dialog de criar/editar com autopreenchimento ViaCEP, mesmos
+     endpoints GET /me/addresses, POST /address/register, PUT /me/addressess/:addressId)
+     — NÃO recriar essa lógica do zero, só mover/reaproveitar
+   - Remover a seção "Endereços" de dentro da tela de Perfil — o Perfil passa a ter só
+     Dados Pessoais e Segurança
+   - Manter os mesmos estados já implementados (loading, vazio, erro) na nova página
 
-Não é necessária nenhuma chamada de API nova — o role já vem de useAuth().
+Toda chamada HTTP usa credentials: 'include'.
 
-Testar manualmente (ou via viewport de dev tools) em pelo menos 375px de largura,
-garantindo que o Header não quebra com o ícone novo + busca fechada e + busca aberta.
-
-Não implementar: menu hambúrguer novo, badge de notificação nesse link — fora do
-escopo desta task.
+Não implementar: exclusão de endereço (API não suporta), atalho/link de volta de
+/enderecos para /perfil — a navegação entre as duas passa a ser só pelo menu do Header.
 ```

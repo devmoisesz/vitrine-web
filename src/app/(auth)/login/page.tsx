@@ -32,6 +32,7 @@ declare global {
           initialize: (configuration: {
             client_id: string;
             callback: (response: { credential: string }) => void;
+            use_fedcm_for_prompt?: boolean;
           }) => void;
           prompt: () => void;
         };
@@ -180,6 +181,9 @@ export default function LoginPage() {
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: onGoogleCredential,
+      // O prompt do FedCM está sendo abortado antes de entregar a credencial.
+      // Mantemos o fluxo One Tap compatível até que o navegador conclua o FedCM.
+      use_fedcm_for_prompt: false,
     });
     setGoogleReady(true);
   }

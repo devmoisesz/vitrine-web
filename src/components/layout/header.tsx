@@ -198,9 +198,6 @@ function HeaderContent() {
             <>
               <Menu.Root modal={false}>
                 <Menu.Trigger
-                  openOnHover
-                  delay={100}
-                  closeDelay={150}
                   aria-label="Abrir menu da conta"
                   className="flex h-10 items-center gap-2 rounded-full bg-background/10 py-1 pl-1 pr-2 transition-colors hover:bg-background/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background"
                 >
@@ -224,25 +221,36 @@ function HeaderContent() {
                 </Menu.Trigger>
 
                 <Menu.Portal>
-                  <Menu.Positioner side="bottom" align="end" sideOffset={8}>
-                    <Menu.Popup className="z-50 min-w-52 rounded-xl border border-border bg-surface p-1 shadow-md outline-none">
+                  <Menu.Positioner
+                    side="bottom"
+                    align="end"
+                    sideOffset={4}
+                    className="z-[60]"
+                  >
+                    <Menu.Popup className="max-h-[calc(100vh-1rem)] min-w-52 overflow-y-auto rounded-xl border border-border bg-surface p-1 shadow-md outline-none">
                       <Menu.Item
                         onClick={() => router.push("/perfil")}
                         className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
                       >
-                        Perfil
+                        Meu Perfil
                       </Menu.Item>
                       <Menu.Item
                         onClick={() => router.push("/pedidos")}
                         className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
                       >
-                        Meus pedidos
+                        Meus Pedidos
                       </Menu.Item>
                       <Menu.Item
                         onClick={() => router.push("/carrinho")}
                         className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
                       >
-                        Meus carrinhos
+                        Meus Carrinhos
+                      </Menu.Item>
+                      <Menu.Item
+                        onClick={() => router.push("/enderecos")}
+                        className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground outline-none transition-colors hover:bg-muted data-[highlighted]:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/30"
+                      >
+                        Meus Endereços
                       </Menu.Item>
                       <Menu.Separator className="my-1 h-px bg-border" />
                       <Menu.Item

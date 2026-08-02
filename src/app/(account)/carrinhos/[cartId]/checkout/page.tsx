@@ -15,7 +15,7 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { listCarts } from "@/features/cart/api/cart";
 import { useCreateOrder } from "@/features/checkout/hooks/use-create-order";
 import { buildWhatsAppMessage } from "@/features/checkout/lib/build-whatsapp-message";
-import { useAddresses } from "@/features/profile/hooks/use-addresses";
+import { useAddresses } from "@/features/address/hooks/use-addresses";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 
 function CheckoutSkeleton() {

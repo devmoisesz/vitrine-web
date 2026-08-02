@@ -1,4 +1,4 @@
-import type { Address } from "@/features/profile/api/profile";
+import type { Address } from "@/features/address/api/address";
 
 interface AddressSelectorProps {
   addresses: Address[];
