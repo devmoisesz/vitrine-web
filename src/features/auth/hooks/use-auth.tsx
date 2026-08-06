@@ -104,6 +104,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [accessToken, refresh]);
 
+  // Browsers podem pausar timers de abas em segundo plano. Ao voltar para a
+  // aplicação, renova imediatamente se o access token estiver perto de expirar
+  // (ou já tiver expirado), desde que o cookie httpOnly ainda seja válido.
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const refreshIfNeeded = () => {
+      const expiry = getAccessTokenExpiry(getAccessToken());
+      if (!expiry || expiry * 1000 - Date.now() <= REFRESH_MARGIN_MS) {
+        void refresh();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") refreshIfNeeded();
+    };
+
+    window.addEventListener("pageshow", refreshIfNeeded);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("pageshow", refreshIfNeeded);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [accessToken, refresh]);
+
   // Reage à expiração real da sessão: refresh falhou com token ativo.
   useEffect(() => {
     const unsubscribe = subscribeToSessionExpired(() => {

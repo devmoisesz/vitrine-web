@@ -17,7 +17,7 @@ async function sessionResponse(data: {
   });
   response.cookies.set("refreshToken", data.refresh_token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60, // 1h — alinhado ao refresh token do backend
@@ -27,7 +27,7 @@ async function sessionResponse(data: {
   if (userRole) {
     response.cookies.set("userRole", userRole, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60,

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   });
   response.cookies.set("refreshToken", data.refresh_token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60,
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (userRole) {
     response.cookies.set("userRole", userRole, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60,
