@@ -15,6 +15,7 @@ export interface StoreSettings {
   name: string;
   email?: string;
   logo_url: string | null;
+  banner_url: string | null;
   description: string;
   whatsapp: string;
   payment_methods: string[];
@@ -183,9 +184,7 @@ export async function createProduct(
     return { id: result.id };
   }
 
-  throw new Error(
-    "Resposta inesperada ao criar produto. Contate o suporte.",
-  );
+  throw new Error("Resposta inesperada ao criar produto. Contate o suporte.");
 }
 
 /**
@@ -351,7 +350,11 @@ export function getStoreSettings(slug: string, accessToken: string) {
   });
 }
 
-export function updateStore(slug: string, input: UpdateStoreInput, accessToken: string) {
+export function updateStore(
+  slug: string,
+  input: UpdateStoreInput,
+  accessToken: string,
+) {
   return apiClient<void>(`/store/${encodeURIComponent(slug)}/edit`, {
     method: "PUT",
     body: input,
@@ -362,25 +365,81 @@ export function updateStore(slug: string, input: UpdateStoreInput, accessToken: 
 export function uploadStoreLogo(slug: string, file: File, accessToken: string) {
   const formData = new FormData();
   formData.append("file", file);
-  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo`, { method: "POST", body: formData, ...authenticated(accessToken) });
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo`, {
+    method: "POST",
+    body: formData,
+    ...authenticated(accessToken),
+  });
 }
 
 export function changeStoreLogo(slug: string, file: File, accessToken: string) {
   const formData = new FormData();
   formData.append("file", file);
-  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/change`, { method: "PATCH", body: formData, ...authenticated(accessToken) });
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/change`, {
+    method: "PATCH",
+    body: formData,
+    ...authenticated(accessToken),
+  });
 }
 
 export function deleteStoreLogo(slug: string, accessToken: string) {
-  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/delete`, { method: "DELETE", ...authenticated(accessToken) });
-}
-
-export function saveStoreAddress(slug: string, input: StoreAddressInput, hasAddress: boolean, accessToken: string) {
-  return apiClient<void>(hasAddress ? `/store/${encodeURIComponent(slug)}/address` : `/address/${encodeURIComponent(slug)}/register/`, {
-    method: hasAddress ? "PUT" : "POST",
-    body: input,
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/logo/delete`, {
+    method: "DELETE",
     ...authenticated(accessToken),
   });
+}
+
+export function uploadStoreBanner(
+  slug: string,
+  file: File,
+  accessToken: string,
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/banner`, {
+    method: "POST",
+    body: formData,
+    ...authenticated(accessToken),
+  });
+}
+
+export function changeStoreBanner(
+  slug: string,
+  file: File,
+  accessToken: string,
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/banner/change`, {
+    method: "PATCH",
+    body: formData,
+    ...authenticated(accessToken),
+  });
+}
+
+export function deleteStoreBanner(slug: string, accessToken: string) {
+  return apiClient<void>(`/stores/${encodeURIComponent(slug)}/banner/delete`, {
+    method: "DELETE",
+    ...authenticated(accessToken),
+  });
+}
+
+export function saveStoreAddress(
+  slug: string,
+  input: StoreAddressInput,
+  hasAddress: boolean,
+  accessToken: string,
+) {
+  return apiClient<void>(
+    hasAddress
+      ? `/store/${encodeURIComponent(slug)}/address`
+      : `/address/${encodeURIComponent(slug)}/register/`,
+    {
+      method: hasAddress ? "PUT" : "POST",
+      body: input,
+      ...authenticated(accessToken),
+    },
+  );
 }
 
 export function getStoreOrders(

@@ -8,6 +8,7 @@ import { StoreGeneralForm } from "@/components/painel/store-general-form";
 import { PaymentMethodsChecklist } from "@/components/painel/payment-methods-checklist";
 import { DeliveryMethodsChecklist } from "@/components/painel/delivery-methods-checklist";
 import { StoreLogoManager } from "@/components/painel/store-logo-manager";
+import { StoreBannerManager } from "@/components/painel/store-banner-manager";
 import { StoreAddressSection } from "@/components/painel/store-address-section";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { isOwnerRole } from "@/lib/roles";
@@ -79,6 +80,11 @@ export default function LojaPage() {
           accessToken={accessToken}
         />
       </div>
+      <StoreBannerManager
+        bannerUrl={data.banner_url}
+        slug={slug}
+        accessToken={accessToken}
+      />
       <StoreLogoManager
         logoUrl={data.logo_url}
         slug={slug}
