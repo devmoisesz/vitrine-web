@@ -77,6 +77,16 @@ export interface UpdateProductBody {
   newSubcategory?: string;
 }
 
+function cleanRequestBody<T extends Record<string, unknown>>(body: T): T {
+  return Object.fromEntries(
+    Object.entries(body).filter(([, value]) => {
+      if (value === undefined || value === null) return false;
+      if (Array.isArray(value) && value.length === 0) return false;
+      return true;
+    }),
+  ) as T;
+}
+
 /** Produto na listagem de gestão (pode estar ATIVO ou INATIVO) */
 export type ManageProduct = Product;
 
@@ -198,9 +208,10 @@ export function updateProduct(
   body: UpdateProductBody,
   accessToken: string,
 ) {
+  const cleanedBody = cleanRequestBody(body);
   return apiClient<void>(
     `/stores/${encodeURIComponent(slug)}/products/${encodeURIComponent(productId)}`,
-    { method: "PUT", body, ...authenticated(accessToken) },
+    { method: "PUT", body: cleanedBody, ...authenticated(accessToken) },
   );
 }
 

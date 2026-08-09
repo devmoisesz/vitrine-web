@@ -53,9 +53,11 @@ export default function PainelProdutoEditarPage() {
         changes.newSizes = data.sizes;
       }
 
-      // Tags não estão disponíveis no Product type de listagem,
-      // então sempre enviamos (o backend só atualiza se houver diferença)
-      changes.newTags = data.tags;
+      // Tags não estão disponíveis no Product type de listagem.
+      // Envia apenas se o usuário informou tags.
+      if (data.tags.length > 0) {
+        changes.newTags = data.tags;
+      }
 
       // categoryId/subcategoryId são UUIDs, mas o formulário trabalha com nomes.
       // Sempre envia os nomes para o backend resolver.
