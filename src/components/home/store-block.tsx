@@ -66,7 +66,7 @@ export function StoreBlock({ store }: { store: HomeStore }) {
       )}
       <Link
         href={`/loja/${store.slug}/produtos`}
-        className="mt-6 inline-block border border-foreground px-5 py-2.5 text-sm font-medium transition-colors hover:bg-foreground hover:text-background"
+        className="mt-6 block w-fit border border-foreground px-5 py-2.5 text-sm font-medium transition-colors hover:bg-foreground hover:text-background"
       >
         Ver todos os produtos
       </Link>
