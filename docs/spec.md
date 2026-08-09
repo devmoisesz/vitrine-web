@@ -26,6 +26,8 @@ Resposta 200:
   "address": Address | null
 }
 
+(confirmar se banner_url já está incluído neste DTO — necessário tanto aqui quanto na
+Vitrine da Loja pública, que também vai exibir o banner)
 ```
 
 ```
@@ -91,6 +93,51 @@ Resposta: 204
   endereços com seletor), aqui é sempre **um único bloco**: se não existe, mostra
   formulário de cadastro; se existe, mostra os dados com opção de editar (nunca "+
   adicionar outro")
+## 3.1 Cropper de Imagem (Logo e Banner)
+
+Componente reaproveitável, usado nos dois fluxos de upload — o corte acontece **no
+navegador, antes do envio**; o backend recebe sempre um arquivo já cortado no formato
+certo, sem saber que houve edição.
+
+**Biblioteca:** `react-easy-crop`
+```bash
+npm install react-easy-crop
+```
+
+**Fluxo (igual para "primeira vez" e "trocar"):**
+1. Usuário seleciona um arquivo no input (pode ter qualquer proporção/tamanho)
+2. Abre `ImageCropperDialog` (Dialog do Base UI) mostrando a imagem com uma moldura de
+   corte na proporção certa — **1:1 para logo**, **4:1 para banner** (prop
+   `aspectRatio` diferencia os dois usos do mesmo componente)
+3. Usuário ajusta zoom/posição (pan) dentro da moldura
+4. Ao confirmar: a área selecionada é renderizada num `<canvas>` e convertida em
+   arquivo (`canvas.toBlob()`) — **esse arquivo cortado** é o que vai para
+   `POST`/`PATCH` (não o arquivo original selecionado)
+5. Ao confirmar o corte, já dispara o upload em seguida (estado de loading no botão de
+   confirmar do dialog) — sem um passo extra de "revisar antes de enviar"
+6. Cancelar o corte (botão "Cancelar" no dialog) não sobe nada, volta ao estado anterior
+
+**Componente:**
+```tsx
+interface ImageCropperDialogProps {
+  file: File;
+  aspectRatio: number; // 1 para logo, 4 para banner
+  isOpen: boolean;
+  onConfirm: (croppedFile: File) => void;
+  onCancel: () => void;
+}
+```
+
+Validações de tipo/tamanho de arquivo (png/jpg/jpeg/webp, ver limites na seção 3)
+continuam acontecendo **antes** de abrir o cropper, no momento da seleção do arquivo
+original — evita abrir o editor para um arquivo que já seria rejeitado de qualquer jeito.
+
+**Nota prática:** como o resultado final é sempre cortado pro tamanho exato necessário
+(não a imagem inteira original), o arquivo final tende a ser mais leve que o original
+selecionado — ajuda a ficar dentro do limite de tamanho com menos fricção pro lojista.
+
+## 3.2 Regras de Negócio — Logo e Banner
+
 - **Logo e Banner: mesmos três estados possíveis, cada um independente** — sem
   imagem (mostra upload), com imagem (mostra atual + opções "Trocar" e "Remover"). O
   endpoint usado depende do estado atual de cada um (`POST` só na primeira vez,
@@ -163,8 +210,9 @@ components/painel/
 ├── store-general-form.tsx        # nome, e-mail, descrição
 ├── payment-methods-checklist.tsx  # checkboxes de payment_methods
 ├── delivery-methods-checklist.tsx # checkboxes de delivery_methods
-├── store-logo-manager.tsx         # upload/trocar/remover logo
-├── store-banner-manager.tsx       # upload/trocar/remover banner (mesmo padrão da logo)
+├── store-logo-manager.tsx         # upload/trocar/remover logo (usa ImageCropperDialog)
+├── store-banner-manager.tsx       # upload/trocar/remover banner (usa ImageCropperDialog)
+├── image-cropper-dialog.tsx       # reaproveitado por logo e banner (aspectRatio 1 ou 4)
 └── store-address-section.tsx      # cadastrar OU editar (nunca lista)
 
 features/painel/hooks/
@@ -203,12 +251,22 @@ Seções:
 3. Logo: se a loja não tiver logo, mostrar upload (POST /stores/:slug/logo); se já
    tiver, mostrar a logo atual com opções "Trocar" (PATCH /stores/:slug/logo/change) e
    "Remover" (DELETE /stores/:slug/logo/delete) — mesmas validações de arquivo da spec
-   de Gestão de Imagens do Produto (png/jpg/jpeg/webp, máximo 2MB)
+   de Gestão de Imagens do Produto (png/jpg/jpeg/webp, máximo 2MB). Upload e troca
+   passam OBRIGATORIAMENTE pelo ImageCropperDialog (aspectRatio=1) antes de enviar —
+   nunca subir o arquivo original sem passar pelo corte
 4. Banner: MESMO padrão exato da Logo, só trocando "logo" por "banner" nas rotas
    (POST /stores/:slug/banner, PATCH /stores/:slug/banner/change,
    DELETE /stores/:slug/banner/delete) — três estados independentes (sem/com banner,
-   trocar, remover). Diferença apenas visual: área de upload/preview em formato
-   widescreen (ex: proporção ~4:1), não quadrado como a logo
+   trocar, remover). Upload e troca passam pelo MESMO ImageCropperDialog, mas com
+   aspectRatio=4 (widescreen, não quadrado)
+
+Implementar src/components/painel/image-cropper-dialog.tsx usando a biblioteca
+react-easy-crop (npm install react-easy-crop), como componente reaproveitável entre
+logo e banner (prop aspectRatio diferencia os dois usos). Fluxo: seleciona arquivo →
+valida tipo/tamanho ANTES de abrir o dialog → abre cropper → usuário ajusta zoom/pan →
+confirma → gera arquivo cortado via canvas.toBlob() → dispara o upload automaticamente
+(sem passo extra de revisão) → estado de loading no botão de confirmar durante o envio.
+Cancelar no dialog não sobe nada.
 5. Endereço: se a loja não tiver endereço cadastrado, mostrar formulário de cadastro
    (POST /address/:slug/register/, com autopreenchimento via ViaCEP); se já tiver,
    mostrar os dados com opção "Editar" (PUT /store/:slug/address) — NUNCA permitir

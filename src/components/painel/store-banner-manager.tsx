@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api-client";
+import { ImageCropperDialog } from "@/components/painel/image-cropper-dialog";
 import { useChangeStoreBanner } from "@/features/painel/hooks/use-change-store-banner";
 import { useDeleteStoreBanner } from "@/features/painel/hooks/use-delete-store-banner";
 import { useUploadStoreBanner } from "@/features/painel/hooks/use-upload-store-banner";
 
 const accepted = ["image/png", "image/jpeg", "image/webp"];
-const maxSize = 5 * 1024 * 1024;
+const maxSize = 5 * 1024 * 1024; // 5MB
 
 export function StoreBannerManager({
   bannerUrl,
@@ -23,7 +24,7 @@ export function StoreBannerManager({
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const upload = useUploadStoreBanner(slug, accessToken);
   const change = useChangeStoreBanner(slug, accessToken);
   const remove = useDeleteStoreBanner(slug, accessToken);
@@ -34,7 +35,8 @@ export function StoreBannerManager({
     window.setTimeout(() => setSuccess(null), 3500);
   }
 
-  async function selectFile(file?: File) {
+  /** Ao selecionar arquivo: valida tipo/tamanho ANTES de abrir o cropper */
+  function selectFile(file?: File) {
     if (!file) return;
     if (!accepted.includes(file.type)) {
       setError("Formato não aceito. Use PNG, JPG ou WebP.");
@@ -46,28 +48,31 @@ export function StoreBannerManager({
     }
     setError(null);
     setSuccess(null);
-    // Preview local imediato enquanto o upload é processado
-    setPreview(URL.createObjectURL(file));
+    setCropFile(file);
+  }
+
+  /** Ao confirmar o corte: dispara o upload (POST ou PATCH) */
+  async function uploadCropped(croppedFile: File) {
+    setCropFile(null);
     try {
       // Se o estado local diz que não há banner, tenta POST. Caso o backend
       // responda 409 (conflito — já existe um banner), retorna ao endpoint de
       // troca (PATCH). Isso cobre divergências entre o cache local e o servidor.
       try {
-        await (bannerUrl ? change : upload).mutateAsync(file);
+        await (bannerUrl ? change : upload).mutateAsync(croppedFile);
       } catch (requestError) {
         if (
           !bannerUrl &&
           requestError instanceof ApiError &&
           requestError.status === 409
         ) {
-          await change.mutateAsync(file);
+          await change.mutateAsync(croppedFile);
         } else {
           throw requestError;
         }
       }
       showSuccess("Banner salvo com sucesso.");
     } catch (requestError) {
-      setPreview(null);
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -94,8 +99,6 @@ export function StoreBannerManager({
     }
   }
 
-  const displayUrl = preview ?? bannerUrl;
-
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-5 sm:p-7">
       <h2 className="font-serif text-2xl">Banner</h2>
@@ -104,11 +107,11 @@ export function StoreBannerManager({
         widescreen (ex.: 4:1).
       </p>
       <div className="mt-5">
-        {displayUrl ? (
+        {bannerUrl ? (
           <div className="relative aspect-[4/1] w-full overflow-hidden rounded-lg border border-gray-200">
             <Image
-              src={displayUrl}
-              alt={preview ? "Prévia do novo banner" : "Banner atual da loja"}
+              src={bannerUrl}
+              alt="Banner atual da loja"
               fill
               className="object-cover"
             />
@@ -124,7 +127,7 @@ export function StoreBannerManager({
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="sr-only"
-            onChange={(event) => void selectFile(event.target.files?.[0])}
+            onChange={(event) => selectFile(event.target.files?.[0])}
             disabled={pending}
           />
           <Button onClick={() => inputRef.current?.click()} disabled={pending}>
@@ -149,6 +152,18 @@ export function StoreBannerManager({
         <p className="mt-3 text-sm text-emerald-700">{success}</p>
       ) : null}
       {error ? <p className="mt-3 text-sm font-medium">{error}</p> : null}
+
+      <ImageCropperDialog
+        file={cropFile as File}
+        aspectRatio={4}
+        isOpen={Boolean(cropFile)}
+        onConfirm={(croppedFile) => void uploadCropped(croppedFile)}
+        onCancel={() => {
+          setCropFile(null);
+          if (inputRef.current) inputRef.current.value = "";
+        }}
+        isUploading={upload.isPending || change.isPending}
+      />
     </section>
   );
 }
