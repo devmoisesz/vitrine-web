@@ -1,6 +1,7 @@
-import { CatalogClient } from '@/features/catalog/components/catalog-client'
+import { HomeClient } from './home-client'
 import { fetchCategoriesWithSubcategories } from '@/features/catalog/api/fetch-categories'
 import { fetchProducts } from '@/features/catalog/api/fetch-products'
+import { fetchHomeStores } from '@/features/home/api/fetch-home-stores'
 
 interface HomePageProps {
   searchParams: Promise<{
@@ -20,10 +21,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     subcategoryId: params.subcategoryId,
     page: Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1,
   }
-  const [initialProducts, initialCategories] = await Promise.all([
-    fetchProducts(queryParams),
+  const hasFilters = Boolean(queryParams.name || queryParams.categoryId || queryParams.subcategoryId)
+  const [initialCategories, initialData] = await Promise.all([
     fetchCategoriesWithSubcategories(),
+    hasFilters ? fetchProducts(queryParams) : fetchHomeStores(queryParams.page),
   ])
 
-  return <CatalogClient initialProducts={initialProducts} initialCategories={initialCategories} queryParams={queryParams} />
+  return <HomeClient initialCategories={initialCategories} queryParams={queryParams} initialProducts={hasFilters ? initialData : undefined} initialStores={hasFilters ? undefined : initialData} />
 }

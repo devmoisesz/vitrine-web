@@ -62,7 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="flex items-start justify-between gap-2">
         <ProductCardInfo
           productName={product.name}
-          storeName={product.store.name}
+          storeName={product.store?.name ?? ""}
         />
 
         <button

@@ -15,6 +15,8 @@ interface PaginationProps {
   gridRef: React.RefObject<HTMLElement | null>;
   /** Rota que receberá o parâmetro `page`. A Home continua sendo o padrão. */
   basePath?: string;
+  /** Itens por página do endpoint atual. */
+  pageSize?: number;
 }
 
 export function Pagination({
@@ -23,14 +25,15 @@ export function Pagination({
   totalCount,
   gridRef,
   basePath = "/",
+  pageSize = PAGE_SIZE,
 }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const totalPages = totalCount ? Math.ceil(totalCount / PAGE_SIZE) : undefined;
+  const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : undefined;
   const hasNextPage = totalPages
     ? currentPage < totalPages
-    : itemsInCurrentPage === PAGE_SIZE;
+    : itemsInCurrentPage === pageSize;
   const hasPreviousPage = currentPage > 1;
 
   function goToPage(page: number) {

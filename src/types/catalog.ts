@@ -36,8 +36,17 @@ export interface Product {
   categoryId: string;
   subcategoryId: string;
   createdAt: string;
-  store: StoreSummary;
-  products_images: ProductImage[];
+  /**
+   * Ausente em alguns endpoints (ex: /home/stores), que retornam produtos sem
+   * o objeto `store` aninhado. Presente em /products e demais fluxos que
+   * precisam do nome/slug da loja.
+   */
+  store?: StoreSummary;
+  /**
+   * Ausente em alguns endpoints (ex: /home/stores). `getMainImage` já trata a
+   * ausência de forma defensiva.
+   */
+  products_images?: ProductImage[];
 }
 
 export interface Category {
@@ -83,8 +92,11 @@ function getStoreLogo(store: StoreSummary): string | null {
 }
 
 export function getMainImage(product: Product): string | null {
-  const main = product.products_images.find((img) => img.is_main);
-  return main?.image_url ?? product.products_images[0]?.image_url ?? null;
+  // Alguns endpoints (ex: /home/stores) podem retornar produtos sem a lista
+  // de imagens preenchida — trata a ausência de forma defensiva.
+  const images = product.products_images ?? [];
+  const main = images.find((img) => img.is_main);
+  return main?.image_url ?? images[0]?.image_url ?? null;
 }
 
 export type UserRole = "Admin" | "Cliente" | "Proprietário" | "Funcionário";

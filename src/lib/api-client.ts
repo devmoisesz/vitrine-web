@@ -1,6 +1,6 @@
 import { translateApiError } from "./error-messages";
 
-const API_URL =
+export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://vitrine-web-api.onrender.com";
 
 let globalAccessToken: string | null = null;
