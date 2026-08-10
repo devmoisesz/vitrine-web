@@ -13,6 +13,7 @@ export interface StoreAddress {
 export interface StoreProfile {
   name: string;
   logo_url: string | null;
+  banner_url: string | null;
   description: string;
   whatsapp: string;
   address: StoreAddress | null;

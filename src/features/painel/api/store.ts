@@ -77,7 +77,7 @@ export interface UpdateProductBody {
   newSubcategory?: string;
 }
 
-function cleanRequestBody<T extends Record<string, unknown>>(body: T): T {
+function cleanRequestBody<T extends object>(body: T): T {
   return Object.fromEntries(
     Object.entries(body).filter(([, value]) => {
       if (value === undefined || value === null) return false;
