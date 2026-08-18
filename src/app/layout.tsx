@@ -5,7 +5,7 @@ import { bodoniModa, inter, lato } from "@/app/fonts";
 
 export const metadata: Metadata = {
   title: "Vitrine Web",
-  description: "Marketplace de lojas locais.",
+  description: "Uma vitrine online para sua loja divulgar produtos e receber clientes.",
   manifest: "/site.webmanifest",
 };
 
