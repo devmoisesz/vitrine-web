@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -7,6 +8,7 @@ import {
   type ProductFormValues,
 } from "@/components/painel/product-form";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useCategories } from "@/features/catalog/hooks/use-categories";
 import { useStoreProfile } from "@/features/painel/hooks/use-store-profile";
 import { useUpdateProduct } from "@/features/painel/hooks/use-update-product";
 import { useManageProducts } from "@/features/painel/hooks/use-manage-products";
@@ -17,55 +19,51 @@ export default function PainelProdutoEditarPage() {
   const { accessToken } = useAuth();
   const profile = useStoreProfile(accessToken);
   const slug = profile.data?.store_slug;
-
-  // Busca todos os produtos para encontrar o que está sendo editado
   const { data: products, isLoading } = useManageProducts(slug, accessToken);
-  const product = products?.find((p) => p.id === params.productId);
-
+  const categories = useCategories();
+  const product = products?.find((item) => item.id === params.productId);
   const updateMutation = useUpdateProduct(slug, params.productId, accessToken);
 
+  const defaultValues = useMemo<Partial<ProductFormValues> | undefined>(() => {
+    if (!product || !categories.data) return undefined;
+
+    const category = categories.data.find(
+      (item) => item.id === product.categoryId,
+    );
+    const subcategory = category?.subcategories.find(
+      (item) => item.id === product.subcategoryId,
+    );
+
+    return {
+      name_product: product.name,
+      description: product.description,
+      price: Number(product.price),
+      stock: product.stock,
+      sizes: product.sizes,
+      tags: [],
+      name_category: category?.name ?? "",
+      name_subcategory: subcategory?.name ?? "",
+    };
+  }, [categories.data, product]);
+
   async function handleSubmit(data: ProductFormValues) {
-    if (!slug || !accessToken) return;
+    if (!slug || !accessToken || !product) return;
 
     try {
-      // Atualização parcial: só envia campos alterados.
-      // O formulário usa nomes (não IDs) para categoria/subcategoria,
-      // enquanto product.categoryId é UUID — a comparação sempre resulta
-      // em "alterado", o que é aceitável (envia o nome mesmo se for o mesmo).
       const changes: import("@/features/painel/api/store").UpdateProductBody =
         {};
 
-      if (data.name_product !== product?.name) {
-        changes.newNameProduct = data.name_product;
-      }
-      if (data.description !== product?.description) {
-        changes.newDescription = data.description;
-      }
-      if (data.price !== Number(product?.price)) {
-        changes.newPrice = data.price;
-      }
-      if (data.stock !== product?.stock) {
-        changes.newStock = data.stock;
-      }
+      if (data.name_product !== product.name) changes.newNameProduct = data.name_product;
+      if (data.description !== product.description) changes.newDescription = data.description;
+      if (data.price !== Number(product.price)) changes.newPrice = data.price;
+      if (data.stock !== product.stock) changes.newStock = data.stock;
+      if (data.sizes.join(",") !== product.sizes.join(",")) changes.newSizes = data.sizes;
+      if (data.tags.length > 0) changes.newTags = data.tags;
 
-      // Arrays: comparação simples por join
-      if (data.sizes.join(",") !== (product?.sizes ?? []).join(",")) {
-        changes.newSizes = data.sizes;
-      }
-
-      // Tags não estão disponíveis no Product type de listagem.
-      // Envia apenas se o usuário informou tags.
-      if (data.tags.length > 0) {
-        changes.newTags = data.tags;
-      }
-
-      // categoryId/subcategoryId são UUIDs, mas o formulário trabalha com nomes.
-      // Sempre envia os nomes para o backend resolver.
       changes.newCategory = data.name_category;
       changes.newSubcategory = data.name_subcategory;
 
       await updateMutation.mutateAsync(changes);
-
       toast.success("Produto atualizado com sucesso!");
       router.push("/painel/produtos");
     } catch {
@@ -73,26 +71,31 @@ export default function PainelProdutoEditarPage() {
     }
   }
 
-  // Mapeia o produto buscado para os valores iniciais do formulário
-  const defaultValues: Partial<ProductFormValues> | undefined = product
-    ? {
-        name_product: product.name,
-        description: product.description,
-        price: Number(product.price),
-        stock: product.stock,
-        sizes: product.sizes,
-        tags: [], // Tags não estão disponíveis no Product type
-        name_category: "", // categoryId é ID, mas formulário usa nome
-        name_subcategory: "", // subcategoryId é ID
-      }
-    : undefined;
+  if (isLoading || categories.isLoading) {
+    return (
+      <ProductForm
+        title="Editar produto"
+        submitLabel="Salvar alterações"
+        isLoadingInitial
+        onSubmit={handleSubmit}
+      />
+    );
+  }
+
+  if (!product || !defaultValues) {
+    return (
+      <div className="mx-auto max-w-2xl py-12 text-center text-sm text-gray-500">
+        Produto não encontrado ou categorias indisponíveis.
+      </div>
+    );
+  }
 
   return (
     <ProductForm
+      key={product.id}
       title="Editar produto"
       submitLabel="Salvar alterações"
       defaultValues={defaultValues}
-      isLoadingInitial={isLoading}
       isSubmitting={updateMutation.isPending}
       submitError={updateMutation.isError ? "Erro ao atualizar produto." : null}
       onSubmit={handleSubmit}
