@@ -58,9 +58,14 @@ export async function authenticateWithGoogle(idToken: string) {
 }
 
 export async function logout() {
-  await fetch("/api/session/logout", {
-    method: "POST",
-    credentials: "include",
-  });
-  setAccessToken(null);
+  try {
+    await fetch("/api/session/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+  } finally {
+    // Mesmo que a requisição falhe (por exemplo, perda de conexão), a sessão
+    // local não deve permanecer ativa com um access token em memória.
+    setAccessToken(null);
+  }
 }

@@ -24,6 +24,13 @@ async function sessionResponse(data: {
   });
   // Grava o role em um cookie legível pelo middleware, normalizado
   // (minúsculas, sem acento) para evitar problemas de encoding.
+  response.cookies.set("accessToken", data.access_token, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 15 * 60,
+  });
   if (userRole) {
     response.cookies.set("userRole", userRole, {
       httpOnly: true,
@@ -32,6 +39,10 @@ async function sessionResponse(data: {
       path: "/",
       maxAge: 60 * 60,
     });
+  } else {
+    // Evita manter um papel de uma sessão anterior caso a resolução do perfil
+    // não esteja disponível para o usuário recém-autenticado.
+    response.cookies.delete("userRole");
   }
   return response;
 }

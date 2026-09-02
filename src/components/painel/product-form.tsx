@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -57,6 +58,7 @@ export function ProductForm({
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -72,6 +74,21 @@ export function ProductForm({
       ...defaultValues,
     },
   });
+
+  useEffect(() => {
+    if (!defaultValues) return;
+    reset({
+      name_product: "",
+      description: "",
+      price: undefined,
+      stock: undefined,
+      sizes: [],
+      tags: [],
+      name_category: "",
+      name_subcategory: "",
+      ...defaultValues,
+    });
+  }, [defaultValues, reset]);
 
   if (isLoadingInitial) {
     return (
