@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   }).catch(() => undefined);
   const response = new NextResponse(null, { status: 204 });
   response.cookies.delete("refreshToken");
+  response.cookies.delete("accessToken");
   response.cookies.delete("userRole");
   return response;
 }
