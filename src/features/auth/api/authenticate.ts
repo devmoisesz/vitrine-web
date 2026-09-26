@@ -1,5 +1,6 @@
 import { ApiError, setAccessToken } from "@/lib/api-client";
 import { translateApiError } from "@/lib/error-messages";
+import { withSessionLock } from "@/lib/session-lock";
 
 export interface AuthenticationResponse {
   access_token: string;
@@ -58,14 +59,14 @@ export async function authenticateWithGoogle(idToken: string) {
 }
 
 export async function logout() {
-  try {
-    await fetch("/api/session/logout", {
+  return withSessionLock(async () => {
+    const response = await fetch("/api/session/logout", {
       method: "POST",
       credentials: "include",
     });
-  } finally {
-    // Mesmo que a requisição falhe (por exemplo, perda de conexão), a sessão
-    // local não deve permanecer ativa com um access token em memória.
+    if (!response.ok) {
+      throw new ApiError("Não foi possível encerrar sua sessão. Tente novamente.", response.status);
+    }
     setAccessToken(null);
-  }
+  });
 }
