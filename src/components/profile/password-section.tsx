@@ -3,6 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { setAccessToken } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChangePassword } from "@/features/profile/hooks/use-change-password";
@@ -28,6 +31,7 @@ export function PasswordSection({
   accessToken: string;
   onSuccess: (message: string) => void;
 }) {
+  const router = useRouter();
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { currentPassword: "", newPassword: "", confirmation: "" },
@@ -39,6 +43,9 @@ export function PasswordSection({
       await changePassword.mutateAsync(values);
       form.reset();
       onSuccess("Senha atualizada.");
+      toast.success("Senha atualizada. Entre novamente com sua nova senha.");
+      setAccessToken(null);
+      router.replace("/login");
     } catch (error) {
       const message =
         error instanceof Error

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -104,9 +105,10 @@ function HeaderContent() {
   async function handleLogout() {
     try {
       await logout();
-    } finally {
       router.push("/");
       router.refresh();
+    } catch {
+      toast.error("Não foi possível encerrar sua sessão. Tente novamente.");
     }
   }
 

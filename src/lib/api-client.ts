@@ -1,4 +1,5 @@
 import { translateApiError } from "./error-messages";
+import { withSessionLock } from "./session-lock";
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://vitrine-web-api.onrender.com";
@@ -116,7 +117,7 @@ export async function refreshSession(): Promise<boolean> {
   // realmente expirou (diferente do load inicial, em que o usuário é visitante).
   const hadActiveSession = Boolean(globalAccessToken);
 
-  refreshPromise = (async () => {
+  refreshPromise = withSessionLock(async () => {
     try {
       const response = await fetch("/api/session/refresh", {
         method: "PATCH",
@@ -149,7 +150,7 @@ export async function refreshSession(): Promise<boolean> {
       isRefreshing = false;
       refreshPromise = null;
     }
-  })();
+  });
 
   return refreshPromise;
 }

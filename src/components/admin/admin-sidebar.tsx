@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, PanelLeftClose, X } from "lucide-react";
 import { useState } from "react";
@@ -22,9 +23,12 @@ export function AdminSidebar() {
     setIsLeaving(true);
     try {
       await logout();
-    } finally {
       router.replace("/");
       router.refresh();
+    } catch {
+      toast.error("Não foi possível encerrar sua sessão. Tente novamente.");
+    } finally {
+      setIsLeaving(false);
     }
   }
 

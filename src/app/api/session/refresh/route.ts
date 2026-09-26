@@ -16,14 +16,21 @@ export async function PATCH(request: NextRequest) {
     headers: { Cookie: `refreshToken=${encodeURIComponent(refreshToken)}` },
   });
   const body = await upstream.text();
-  if (!upstream.ok)
-    return new NextResponse(body, {
+  if (!upstream.ok) {
+    const response = new NextResponse(body, {
       status: upstream.status,
       headers: {
         "Content-Type":
           upstream.headers.get("Content-Type") ?? "application/json",
       },
     });
+    if (upstream.status === 401) {
+      response.cookies.delete("refreshToken");
+      response.cookies.delete("accessToken");
+      response.cookies.delete("userRole");
+    }
+    return response;
+  }
   const data = JSON.parse(body) as {
     access_token: string;
     refresh_token?: string;
