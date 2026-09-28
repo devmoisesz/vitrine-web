@@ -23,7 +23,7 @@ export function getProfile(accessToken: string) {
 }
 
 export function updateProfile(
-  input: { name: string; email: string },
+  input: { name: string; email?: string },
   accessToken: string,
 ) {
   return apiClient<void>("/account/edit", {

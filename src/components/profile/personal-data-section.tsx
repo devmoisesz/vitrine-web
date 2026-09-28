@@ -38,7 +38,12 @@ export function PersonalDataSection({
   async function submit(values: Values) {
     form.clearErrors();
     try {
-      await update.mutateAsync(values);
+      await update.mutateAsync({
+        name: values.name,
+        ...(values.email !== profile.user_email.trim()
+          ? { email: values.email }
+          : {}),
+      });
       form.reset(values);
       onSuccess("Dados atualizados.");
     } catch (error) {
