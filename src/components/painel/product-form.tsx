@@ -19,7 +19,8 @@ const productFormSchema = z.object({
     .positive("O preço deve ser positivo."),
   stock: z
     .number({ invalid_type_error: "Estoque deve ser um número." })
-    .positive("O estoque deve ser positivo."),
+    .int("O estoque deve ser um número inteiro.")
+    .nonnegative("O estoque não pode ser negativo."),
   sizes: z.array(z.string()),
   tags: z.array(z.string()),
   name_category: z.string().min(1, "Selecione uma categoria."),
@@ -188,7 +189,7 @@ export function ProductForm({
               id="stock"
               type="number"
               step="1"
-              min="1"
+              min="0"
               {...register("stock", { valueAsNumber: true })}
             />
             {errors.stock && (
