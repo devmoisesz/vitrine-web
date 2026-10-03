@@ -16,5 +16,7 @@ export interface StoreProfile {
   banner_url: string | null;
   description: string | null;
   whatsapp: string;
+  payment_methods?: string[];
+  delivery_methods?: string[];
   address: StoreAddress | null;
 }

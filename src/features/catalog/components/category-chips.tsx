@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useCategories } from "@/features/catalog/hooks/use-categories";
 
-export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
+export function CategoryChips({ basePath }: { basePath: string }) {
   const { data: categories } = useCategories();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
     else params.delete("subcategoryId");
 
     params.delete("page");
-    router.push(`${basePath}?${params.toString()}`);
+    router.push(`${basePath}${params.size ? `?${params}` : ""}#catalogo`, { scroll: false });
   }
 
   const chipClass = (active: boolean) =>
@@ -41,6 +41,7 @@ export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
+          aria-pressed={!activeCategoryId}
           onClick={() => goToFilter(undefined, undefined)}
           className={chipClass(!activeCategoryId)}
         >
@@ -50,6 +51,7 @@ export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
           <button
             key={category.id}
             type="button"
+            aria-pressed={activeCategoryId === category.id}
             onClick={() => goToFilter(category.id, undefined)}
             className={chipClass(activeCategoryId === category.id)}
           >
@@ -64,6 +66,7 @@ export function CategoryChips({ basePath = "/" }: { basePath?: string }) {
             <button
               key={subcategory.id}
               type="button"
+              aria-pressed={activeSubcategoryId === subcategory.id}
               onClick={() =>
                 goToFilter(
                   activeCategory.id,

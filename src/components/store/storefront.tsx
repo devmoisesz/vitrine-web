@@ -8,6 +8,7 @@ import { StoreNavigation } from "./store-navigation";
 import { StoreCatalog } from "./store-catalog";
 import { useStoreProfile } from "@/features/store/hooks/use-store-profile";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
+import { translateDeliveryMethod, translatePaymentMethod } from "@/features/checkout/lib/build-whatsapp-message";
 
 export function Storefront({ slug, catalogOnly = false }: { slug: string; catalogOnly?: boolean }) {
   const profile = useStoreProfile(slug);
@@ -28,7 +29,10 @@ export function Storefront({ slug, catalogOnly = false }: { slug: string; catalo
       </> : <div className="vw-catalog-intro"><span className="vw-eyebrow">CATÁLOGO DA LOJA</span><h1>{store.name}</h1><Link href={`/loja/${slug}`} className="vw-text-button">Conheça a loja <span aria-hidden="true">→</span></Link></div>}
       <Suspense fallback={<div className="vw-local-section" role="status">Carregando catálogo…</div>}><StoreCatalog key={slug} slug={slug} basePath={basePath} /></Suspense>
       {!catalogOnly && <section className="vw-store-information">
-        <div id="sobre"><span className="vw-eyebrow">SOBRE A LOJA</span><h2>Conheça {store.name}.</h2><p>{store.description || "Explore os produtos da nossa vitrine. Para saber mais sobre a loja e as peças, fale com a nossa equipe."}</p><StoreAddress address={store.address} /></div>
+        <div id="sobre"><span className="vw-eyebrow">SOBRE A LOJA</span><h2>Conheça {store.name}.</h2><p>{store.description || "Explore os produtos da nossa vitrine. Para saber mais sobre a loja e as peças, fale com a nossa equipe."}</p><StoreAddress address={store.address} />
+          {Boolean(store.delivery_methods?.length) && <p><strong>Entrega e retirada:</strong> {store.delivery_methods!.map(translateDeliveryMethod).join(", ")}.</p>}
+          {Boolean(store.payment_methods?.length) && <p><strong>Pagamento combinado com a loja:</strong> {store.payment_methods!.map(translatePaymentMethod).join(", ")}.</p>}
+        </div>
         <div id="atendimento"><span className="vw-eyebrow">FALE COM A LOJA</span><h2>Converse com quem conhece as peças.</h2><p>Tire suas dúvidas e combine pagamento e entrega diretamente com {store.name}. Você também pode montar um carrinho desta loja e preparar seu pedido para envio.</p>{store.whatsapp ? <a className="vw-button vw-outline" href={buildWhatsappUrl(store.whatsapp, `Olá, ${store.name}! Conheci a loja pela Vitrine Web e gostaria de saber mais.`)} target="_blank" rel="noopener noreferrer">Atendimento pelo WhatsApp <span aria-hidden="true">↗</span></a> : <p>O contato pelo WhatsApp ainda não foi informado pela loja.</p>}</div>
       </section>}
     </main>
