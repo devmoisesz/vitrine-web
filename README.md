@@ -1,6 +1,6 @@
 # 🛍️ Vitrine Web — Frontend
 
-Marketplace de **vitrine digital** para lojas de roupas de cidades pequenas, funcionando como um catálogo unificado onde **clientes navegam livremente, montam carrinhos por loja e finalizam a compra via WhatsApp**.
+Plataforma de **vitrines digitais para lojistas de moda**. A home apresenta a solução; o diretório permite descobrir marcas; cada loja apresenta sua identidade, seu catálogo e seu atendimento.
 
 A negociação de pagamento e entrega acontece **fora da plataforma** (direto no WhatsApp do lojista). O acesso ao catálogo é **público** — a autenticação só é exigida para interagir com carrinho, pedidos, perfil e áreas administrativas.
 
@@ -30,7 +30,7 @@ A **Vitrine Web** conecta três perfis de usuário em uma única plataforma:
 
 | Papel            | O que faz                                                                                                                                                        |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Cliente**      | Navega pelo catálogo global, busca produtos e lojas, filtra por categoria/subcategoria, adiciona itens ao carrinho (um por loja) e envia o pedido pelo WhatsApp. |
+| **Cliente**      | Descobre lojas, busca produtos dentro da loja escolhida, filtra por categoria/subcategoria, monta um carrinho por loja e envia o pedido pelo WhatsApp. |
 | **Funcionário**  | Gerencia produtos, imagens e pedidos da loja à qual está vinculado.                                                                                              |
 | **Proprietário** | Tudo do Funcionário + gestão da loja (dados, logo, endereço, formas de pagamento/entrega) e cadastro de funcionários.                                            |
 | **Admin**        | Cadastra e gerencia lojas, categorias e subcategorias da plataforma.                                                                                             |
@@ -50,7 +50,7 @@ A **Vitrine Web** conecta três perfis de usuário em uma única plataforma:
 ### 👤 Cliente
 
 - Cadastro e login (e-mail/senha ou Google).
-- Catálogo global com busca por nome, filtro por categoria/subcategoria e paginação (40 itens/página).
+- Diretório de marcas sem produtos ou preços (20 lojas/página); catálogo local com busca, categorias e paginação (40 produtos/página).
 - Página de vitrine exclusiva de cada loja, com dados, endereço e filtro de produtos da loja.
 - Página de detalhes do produto com galeria de imagens, seletor de tamanho, quantidade e disponibilidade.
 - Carrinhos separados por loja, com alteração de quantidade/tamanho e remoção de itens.
@@ -118,7 +118,7 @@ O projeto usa **App Router** do Next.js com organização por **features** e **c
 src/
 ├── app/                      # Rotas do Next.js (App Router)
 │   ├── (public)/             # Área pública
-│   │   ├── page.tsx          # Catálogo global (busca, filtros, paginação)
+│   │   ├── page.tsx          # Home comercial da plataforma
 │   │   ├── lojas/            # Busca de lojas
 │   │   ├── loja/[slug]/      # Vitrine exclusiva de uma loja
 │   │   └── produto/[productId]/  # Detalhes do produto
@@ -138,6 +138,7 @@ src/
 │   │   ├── pedidos/          # Pedidos recebidos pela loja
 │   │   ├── loja/             # Dados da loja, pagamento/entrega, logo, endereço
 │   │   └── funcionarios/     # Gestão de funcionários (só Proprietário)
+│   ├── api/catalog/          # Leituras públicas com caminhos permitidos e contagem
 │   └── api/session/          # Route Handlers (proxy de sessão: login, google, refresh, logout)
 │
 ├── components/               # Componentes de UI e de domínio reutilizáveis
@@ -183,11 +184,12 @@ Cada feature concentra sua **API** (chamadas HTTP) e **hooks** (TanStack Query +
 ### Cliente (compra)
 
 ```
-1. Catálogo ("/")
-   → navega, busca por nome, filtra por categoria/subcategoria, pagina 40/página
+1. Plataforma ("/") → diretório ("/lojas")
+   → entende a proposta, busca uma loja e entra na vitrine escolhida
 
 2. Loja ("/loja/:slug")
-   → vitrine exclusiva com dados, endereço, WhatsApp e produtos da loja
+   → identidade, endereço, WhatsApp e produtos da loja
+   → busca local, categorias/subcategorias e paginação de 40 produtos
 
 3. Produto ("/produto/:productId")
    → galeria, preço, estoque, tamanho, quantidade
@@ -258,13 +260,16 @@ O fluxo de sessão é gerenciado pelo frontend através de **Route Handlers em `
 ## 🔌 API
 
 - **URL base:** `https://vitrine-web-api.onrender.com` (configurável via `NEXT_PUBLIC_API_URL`).
-- **Padrão de chamadas:** `src/lib/api-client.ts` com `credentials: "include"`, header `Authorization: Bearer <access_token>` para rotas autenticadas e **auto-refresh em 401** (fila de requisições durante a renovação).
+- **Sessão e chamadas autenticadas:** `src/lib/api-client.ts` com `credentials: "include"`, header `Authorization: Bearer <access_token>` e **auto-refresh em 401**.
+- **Catálogo público:** `src/lib/public-catalog.ts` consulta `/api/catalog/*` no Next.js. O servidor consulta a API configurada, preserva `X-Total-Count` e status, limita os caminhos a leituras públicas e não encaminha credenciais. Isso permite prévias locais sem depender da lista de origens CORS da API.
+
+Veja [o registro da repaginação](docs/repaginacao.md) para rotas, decisões, verificações e limites da entrega. O tema escuro é restrito à área pública; painel e administração conservam seus estilos. O cadastro de lojistas é solicitado pelo contato comercial em `/sobre#contato`, e realizado pelo administrador.
 
 | Grupo              | Endpoints principais                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | Autenticação       | `POST /authenticate`, `POST /authenticate/google`, `PATCH /refresh`, `POST /logout`                                                                                      |
 | Perfil             | `GET /me`, `PUT /account/edit`, `PATCH /account/password`, endereços (`POST /address/register`, `GET /me/addresses`, `PUT /me/addressess/:addressId`)                    |
-| Catálogo           | `GET /products`, `GET /products/:productId`, `GET /categories`, `GET /subcategories`                                                                                     |
+| Catálogo local     | `GET /store/:slug/products`, `GET /products/:productId`, `GET /categories`, `GET /subcategories` |
 | Lojas              | `GET /stores`, `GET /store/:slug`, `GET /store/:slug/products`                                                                                                           |
 | Carrinho           | `POST /products/:productId/cart`, `GET /carts`, `GET /cart/:cartId/products`, `PUT /cart/:cartItemId`, `DELETE /cart/:cartItemId`                                        |
 | Pedidos            | `POST /cart/:cartId/order`, `GET /orders`, `GET /orders/:orderId`                                                                                                        |
@@ -272,7 +277,7 @@ O fluxo de sessão é gerenciado pelo frontend através de **Route Handlers em `
 | Loja (colaborador) | `PUT /store/:slug/edit`, logo (`POST/PATCH/DELETE /stores/:slug/logo...`), endereço, colaboradores (`POST /stores/:storeId/collaborators`, `GET /store/:slug/employees`) |
 | Admin              | `POST /store`, `PATCH /stores/:slug/activate                                                                                                                             | deactivate`, `GET /stores/admin`, `POST/PUT /categories...` |
 
-> Detalhes completos dos 50 endpoints (exemplos de payload e resposta) em [`docs/endpoints.md`](docs/endpoints.md).
+> Detalhes completos dos endpoints (exemplos de payload e resposta) em [`docs/endpoints.md`](docs/endpoints.md). Os endpoints globais `/products` e `/home/stores` continuam disponíveis na API por compatibilidade, sem consumidores na nova navegação pública.
 
 ---
 
@@ -327,7 +332,7 @@ O repositório mantém specs e guias em [`docs/`](docs/):
 
 ## ✅ Status do projeto
 
-- ✅ Catálogo público com busca, filtros e paginação
+- ✅ Home comercial, diretório de marcas e catálogo público com busca, filtros e paginação por loja
 - ✅ Autenticação por e-mail/senha **e** Google (JWT + refresh token httpOnly)
 - ✅ Perfil do cliente com múltiplos endereços e troca de senha
 - ✅ Carrinhos por loja e checkout via WhatsApp com registro de pedido

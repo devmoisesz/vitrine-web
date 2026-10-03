@@ -2,9 +2,9 @@
 
 ## Contexto do Produto
 
-Plataforma de vitrine digital para lojas de roupas de cidades pequenas, funcionando como um marketplace unificado.
+Plataforma de vitrines digitais próprias para lojistas de moda, com apresentação comercial e diretório de marcas.
 
-Clientes navegam livremente pelo catálogo unificado e solicitam compras via WhatsApp.
+Clientes escolhem uma loja no diretório, navegam pelo catálogo dessa loja e solicitam pedidos via WhatsApp. A plataforma oferece a vitrine; quem vende é o lojista.
 
 A negociação de pagamento e entrega acontece fora da plataforma.
 
@@ -25,9 +25,9 @@ O acesso ao catálogo é público, exigindo autenticação apenas no momento de 
 
 ## Cliente
 
-- [x] Deve ser possível pesquisar produtos por nome de forma global na plataforma
-- [x] Deve ser possível listar todos produtos mais recentes  
-- [x] Deve ser possível filtrar produtos de forma global
+- [x] A home deve apresentar a proposta da plataforma e o contato para lojistas
+- [x] O diretório deve apresentar apenas lojas, sem produtos ou preços
+- [x] Deve ser possível buscar e filtrar produtos dentro da loja escolhida
 - [x] Deve ser possível combinar filtros de categoria, subcategoria e busca por nome
 - [x] Deve ser possível buscar lojas pelo nome
 - [x] Deve ser possível filtrar produtos de uma loja só
@@ -125,8 +125,8 @@ O acesso ao catálogo é público, exigindo autenticação apenas no momento de 
 - [x] Um produto desativado não pode aparecer em nenhuma busca.
 - [x] Uma loja só pode ter um endereço cadastrado
 - [x] Apenas o Admin pode cadastrar e desativar lojas
-- [x] Uma loja desativada não aparece nos resultados de busca global e sua rota de vitrine exclusiva fica inacessível
-- [x] Caso uma loja seja desativada, todos os seus produtos associados são ocultados da busca global automaticamente
+- [x] Uma loja desativada não aparece no diretório público e sua rota de vitrine exclusiva fica inacessível
+- [x] Caso uma loja seja desativada, seus produtos deixam de estar disponíveis nas consultas públicas da API
 
 ---
 
