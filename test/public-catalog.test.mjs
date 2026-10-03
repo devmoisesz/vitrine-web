@@ -9,9 +9,9 @@ const filename = new URL('../src/app/api/catalog/[...path]/route.ts', import.met
 const source = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-const module = { exports: {} };
-runInThisContext(`(function(require,module,exports){${source}\n})`)(createRequire(filename), module, module.exports);
-const { GET } = module.exports;
+const loaded = { exports: {} };
+runInThisContext(`(function(require,module,exports){${source}\n})`)(createRequire(filename), loaded, loaded.exports);
+const { GET } = loaded.exports;
 const originalFetch = global.fetch;
 afterEach(() => { global.fetch = originalFetch; });
 process.env.NEXT_PUBLIC_API_URL = 'http://backend.test';
