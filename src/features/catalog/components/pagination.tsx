@@ -10,10 +10,10 @@ interface PaginationProps {
   currentPage: number;
   /** Quantidade de itens retornados nesta página — usado para o modo degradado */
   itemsInCurrentPage: number;
-  /** Só disponível quando o backend expõe X-Total-Count (ver fetch-products.ts) */
+  /** Contagem filtrada retornada pelo endpoint atual via X-Total-Count. */
   totalCount?: number;
   gridRef: React.RefObject<HTMLElement | null>;
-  /** Rota que receberá o parâmetro `page`. A Home continua sendo o padrão. */
+  /** Rota do diretório ou da loja que receberá o parâmetro `page`. */
   basePath?: string;
   /** Itens por página do endpoint atual. */
   pageSize?: number;

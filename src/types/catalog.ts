@@ -75,15 +75,11 @@ export interface ProductsQueryParams {
   page: number;
 }
 
-/**
- * GET /products hoje devolve apenas um array, sem total/totalPages.
- * Este tipo já modela o formato "ideal" (com X-Total-Count via header),
- * mas o hook trata a ausência do header com um modo degradado.
- */
+/** Página do catálogo local; o proxy público preserva X-Total-Count. */
 export interface ProductsPage {
   data: Product[];
   page: number;
-  /** undefined enquanto o backend não expõe o total (ver nota no header X-Total-Count) */
+  /** Compatibilidade com instâncias da API que não exponham a contagem. */
   totalCount?: number;
 }
 
