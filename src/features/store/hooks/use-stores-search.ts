@@ -5,6 +5,5 @@ export function useStoresSearch(params: StoresSearchParams) {
   return useQuery({
     queryKey: ["stores-search", params.name, params.page],
     queryFn: () => fetchStoresSearch(params),
-    placeholderData: (previousData) => previousData,
   });
 }
