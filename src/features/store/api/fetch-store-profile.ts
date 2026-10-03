@@ -1,6 +1,6 @@
-import { apiClient } from "@/lib/api-client";
+import { publicCatalog } from "@/lib/public-catalog";
 import type { StoreProfile } from "@/types/store";
 
-export function fetchStoreProfile(slug: string) {
-  return apiClient<StoreProfile>(`/store/${slug}`, { method: "GET", credentials: "include" });
+export async function fetchStoreProfile(slug: string) {
+  return (await publicCatalog<StoreProfile>(`/store/${encodeURIComponent(slug)}`)).data;
 }

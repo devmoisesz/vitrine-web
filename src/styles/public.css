@@ -104,6 +104,47 @@
 .vw-theme .vw-empty { padding:40px 0; text-align:center; }
 .vw-theme .vw-empty .vw-button { margin-top:20px; }
 .vw-theme .vw-notice { padding:16px; margin-bottom:24px; border:1px solid var(--vw-line); border-radius:6px; }
+.vw-theme .vw-shop-context { padding:10px 28px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--vw-line); }
+.vw-theme .vw-shop-context>span { font-size:10px; color:var(--vw-muted); }
+.vw-theme .vw-shop-header { padding:20px 34px; display:flex; flex-wrap:wrap; gap:20px; justify-content:space-between; align-items:center; }
+.vw-theme .vw-shop-wordmark { display:flex; align-items:center; gap:12px; min-width:0; color:var(--vw-ink); font:500 36px Georgia,serif; overflow-wrap:anywhere; }
+.vw-theme .vw-shop-wordmark img { width:42px; height:42px; border-radius:50%; object-fit:cover; }
+.vw-theme .vw-shop-hero { background:var(--vw-dark); color:var(--vw-white); display:grid; grid-template-columns:1.4fr 1fr; align-items:center; gap:20px; padding:40px 42px; }
+.vw-theme .vw-shop-hero h1 { font-family:Georgia,serif; font-size:45px; font-weight:400; overflow-wrap:anywhere; }
+.vw-theme .vw-shop-hero p { color:#d1d1d1; margin-top:18px; max-width:540px; white-space:pre-line; }
+.vw-theme .vw-shop-hero .vw-button { margin-top:24px; }
+.vw-theme .vw-shop-poster { position:relative; display:flex; align-items:center; justify-content:center; padding:20px; border:1px solid #474747; min-height:260px; overflow:hidden; }
+.vw-theme .vw-poster-name { font:400 48px Georgia,serif; text-align:center; overflow-wrap:anywhere; }
+.vw-theme .vw-shop-info { display:flex; justify-content:space-between; flex-wrap:wrap; gap:18px; padding:17px 34px; border-bottom:1px solid var(--vw-line); color:var(--vw-muted); font-size:11px; }
+.vw-theme .vw-local-section { padding:32px 42px; }
+.vw-theme .vw-local-section>p { max-width:600px; margin-top:15px; }
+.vw-theme .vw-catalog-header { display:grid; grid-template-columns:1fr 1fr; align-items:end; gap:25px; margin-bottom:25px; }
+.vw-theme .vw-catalog-header .vw-eyebrow { margin-bottom:9px; }
+.vw-theme .vw-search-row { display:flex; gap:10px; }
+.vw-theme .vw-catalog-intro { padding:32px 42px 0; }
+.vw-theme .vw-catalog-intro h1 { font:400 42px Georgia,serif; }
+.vw-theme .vw-catalog-filters { border-bottom:1px solid var(--vw-line); margin-bottom:24px; padding-bottom:16px; }
+.vw-theme .vw-catalog-filters summary { font-size:13px; }
+.vw-theme .vw-catalog-filters button { border-radius:6px; min-height:40px; }
+.vw-theme .vw-filter-summary { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; font-size:12px; margin-bottom:20px; }
+.vw-theme .vw-catalog [data-slot=product-grid], .vw-theme .vw-catalog [data-slot=product-grid-skeleton] { grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+.vw-theme .vw-catalog [data-slot=product-card-image] { height:260px; aspect-ratio:auto; }
+.vw-theme .vw-catalog [data-slot=product-card-image] img { object-fit:contain; }
+.vw-theme .vw-catalog [data-slot=product-card-info]>span:first-child { font-size:15px; }
+.vw-theme .vw-catalog [data-slot=product-card-info]>span:last-child:empty { display:none; }
+.vw-theme .vw-store-information { display:grid; grid-template-columns:1fr 1fr; gap:48px; padding:32px 42px; border-top:1px solid var(--vw-line); }
+.vw-theme .vw-store-information p { margin-top:15px; white-space:pre-line; }
+.vw-theme .vw-store-information .vw-button { margin-top:24px; }
+.vw-theme .vw-product-layout { display:grid; grid-template-columns:1fr 1fr; gap:44px; padding:32px 42px; }
+.vw-theme .vw-product-layout h1 { margin-top:16px; font-size:36px; letter-spacing:-.025em; }
+.vw-theme .vw-product-layout .vw-price { margin-top:22px; color:var(--vw-ink); font-size:22px; }
+.vw-theme .vw-product-layout .vw-description { margin-top:32px; padding-top:24px; border-top:1px solid var(--vw-line); }
+.vw-theme .vw-product-layout .vw-description p { margin-top:12px; white-space:pre-line; }
+.vw-theme .vw-product-layout .vw-order-note { margin-top:24px; }
+.vw-theme .vw-product-layout [data-slot=button] { background:var(--vw-ink); color:var(--vw-dark); border-color:var(--vw-ink); border-radius:6px; }
+.vw-theme .vw-product-layout .vw-notice { margin-top:16px; }
+.vw-theme nav[aria-label=Paginação] button { display:inline-flex; gap:8px; align-items:center; justify-content:center; min-width:40px; min-height:44px; border-radius:6px; }
+.vw-theme nav[aria-label=Paginação] button:disabled { opacity:.55; cursor:default; }
 @media(max-width:1000px) {
   .vw-theme.vw-platform-header { flex-wrap:wrap; gap:15px; }
   .vw-theme.vw-platform-header nav { order:3; width:100%; justify-content:space-between; }
@@ -112,6 +153,7 @@
   .vw-theme .vw-hero { gap:26px; padding:38px 28px; }
   .vw-theme .vw-demo { padding:16px; }
   .vw-theme .vw-demo-banner { min-height:140px; }
+  .vw-theme .vw-shop-hero h1 { font-size:36px; }
 }
 @media(max-width:560px) {
   .vw-theme.vw-platform-header { padding:18px; }
@@ -130,6 +172,20 @@
   .vw-theme .vw-page-intro, .vw-theme .vw-steps, .vw-theme .vw-business-note, .vw-theme .vw-contact { padding:28px 22px; }
   .vw-theme .vw-directory { padding:0 22px 28px; }
   .vw-theme .vw-compact h1 { font-size:33px; }
+  .vw-theme .vw-shop-context { padding:10px 22px; }
+  .vw-theme .vw-shop-context>span { order:3; width:100%; }
+  .vw-theme .vw-shop-header { padding:18px 22px; }
+  .vw-theme .vw-shop-header nav { gap:14px; }
+  .vw-theme .vw-shop-hero { grid-template-columns:1fr; padding:30px 22px; }
+  .vw-theme .vw-shop-poster { min-height:160px; }
+  .vw-theme .vw-shop-info { padding:18px 22px; }
+  .vw-theme .vw-local-section { padding:28px 22px; }
+  .vw-theme .vw-catalog-header { grid-template-columns:1fr; }
+  .vw-theme .vw-catalog-intro { padding:28px 22px 0; }
+  .vw-theme .vw-catalog [data-slot=product-grid] { gap:20px 12px; }
+  .vw-theme .vw-catalog [data-slot=product-card-image] { height:180px; }
+  .vw-theme .vw-product-layout, .vw-theme .vw-store-information { grid-template-columns:1fr; gap:30px; padding:28px 22px; }
+  .vw-theme .vw-product-layout h1 { font-size:30px; }
 }
 @media(max-width:420px) {
   .vw-theme .vw-demo-banner>span { font-size:42px; }

@@ -14,7 +14,7 @@ export interface StoreProfile {
   name: string;
   logo_url: string | null;
   banner_url: string | null;
-  description: string;
+  description: string | null;
   whatsapp: string;
   address: StoreAddress | null;
 }

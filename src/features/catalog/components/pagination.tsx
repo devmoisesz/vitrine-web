@@ -30,8 +30,8 @@ export function Pagination({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : undefined;
-  const hasNextPage = totalPages
+  const totalPages = totalCount !== undefined ? Math.max(1, Math.ceil(totalCount / pageSize)) : undefined;
+  const hasNextPage = totalPages !== undefined
     ? currentPage < totalPages
     : itemsInCurrentPage === pageSize;
   const hasPreviousPage = currentPage > 1;
@@ -64,7 +64,7 @@ export function Pagination({
           <ChevronLeft className="size-4" />
         </button>
 
-        {visiblePages.map((value) =>
+        {visiblePages.map((value, index) =>
           typeof value === "number" ? (
             <button
               key={value}
@@ -81,7 +81,7 @@ export function Pagination({
               {value}
             </button>
           ) : (
-            <span key={value} className="px-1 text-muted-foreground">
+            <span key={`ellipsis-${index}`} className="px-1 text-muted-foreground">
               …
             </span>
           ),

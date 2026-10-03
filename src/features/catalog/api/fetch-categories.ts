@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { publicCatalog } from '@/lib/public-catalog';
 import type { Category, CategoryWithSubcategories, Subcategory } from '@/types/catalog';
 
 /**
@@ -8,12 +8,12 @@ import type { Category, CategoryWithSubcategories, Subcategory } from '@/types/c
  */
 export async function fetchCategoriesWithSubcategories(): Promise<CategoryWithSubcategories[]> {
   const [categories, allSubcategories] = await Promise.all([
-    apiClient<Category[]>('/categories', { method: 'GET' }),
-    apiClient<Subcategory[]>('/subcategories', { method: 'GET' }),
+    publicCatalog<Category[]>('/categories'),
+    publicCatalog<Subcategory[]>('/subcategories'),
   ]);
 
-  return categories.map((category) => ({
+  return categories.data.map((category) => ({
     ...category,
-    subcategories: allSubcategories.filter((sub) => sub.categoryId === category.id),
+    subcategories: allSubcategories.data.filter((sub) => sub.categoryId === category.id),
   }));
 }
