@@ -81,8 +81,10 @@ export function buildWhatsappUrl(
   message: string,
 ) {
   const digits = (phone ?? "").replace(/\D/g, "");
+  // Stores may save a Brazilian number with just DDD + local number.
+  const international = digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
   const encoded = encodeURIComponent(message);
-  return digits
-    ? `https://wa.me/${digits}?text=${encoded}`
+  return international
+    ? `https://wa.me/${international}?text=${encoded}`
     : `https://wa.me/?text=${encoded}`;
 }
