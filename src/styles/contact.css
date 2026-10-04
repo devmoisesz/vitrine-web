@@ -1,0 +1,39 @@
+/* Contact belongs to the commercial layout; no catalogue tokens are changed. */
+.vw-theme .vw-contact-page {
+  display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+  align-items:center; gap:80px; max-width:1240px; margin:0 auto; padding:72px 42px 80px;
+}
+.vw-theme .vw-contact-copy h1 { max-width:560px; }
+.vw-theme .vw-contact-reasons { display:grid; gap:32px; margin-top:44px; }
+.vw-theme .vw-contact-reason { display:flex; align-items:flex-start; gap:18px; }
+.vw-theme .vw-contact-icon {
+  display:flex; align-items:center; justify-content:center; flex:0 0 42px; height:42px;
+  border:1px solid var(--vw-line); border-radius:var(--vw-radius); color:var(--vw-muted);
+}
+.vw-theme .vw-contact-reason h2 { font-size:18px; line-height:1.4; letter-spacing:-.015em; }
+.vw-theme .vw-contact-reason p { margin-top:8px; }
+.vw-theme .vw-contact-panel {
+  padding:40px; border:1px solid #e6e6e6; border-radius:8px; background:#fff; color:#171717;
+  box-shadow:0 16px 48px #0002; color-scheme:light;
+}
+.vw-theme .vw-conversation-icon { margin-bottom:24px; color:#444; }
+.vw-theme .vw-contact-panel h2 { font-size:30px; line-height:1.2; }
+.vw-theme .vw-contact-panel p { color:#595959; margin-top:18px; }
+.vw-theme .vw-contact-panel .vw-contact-whatsapp {
+  width:100%; min-height:56px; margin-top:30px; gap:12px; padding:14px 16px;
+  background:#171717; border-color:#171717; color:#fff; text-align:center; font-size:14px;
+}
+.vw-theme .vw-contact-whatsapp svg { flex-shrink:0; }
+.vw-theme .vw-contact-panel a:focus-visible { outline-color:#171717; }
+.vw-theme .vw-contact-panel .vw-contact-support { margin-top:16px; font-size:12px; line-height:1.6; }
+@media(max-width:1000px) {
+  .vw-theme .vw-contact-page { gap:40px; padding:48px 28px; }
+  .vw-theme .vw-contact-panel { padding:28px; }
+}
+@media(max-width:760px) {
+  .vw-theme .vw-contact-page { grid-template-columns:1fr; gap:32px; padding:32px 22px; }
+  .vw-theme .vw-contact-reasons { gap:26px; margin-top:32px; }
+  .vw-theme .vw-contact-reason { gap:14px; }
+  .vw-theme .vw-contact-panel { padding:28px 24px; }
+  .vw-theme .vw-contact-panel h2 { font-size:27px; }
+}
