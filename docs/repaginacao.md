@@ -1,5 +1,9 @@
 # Repaginação pública — diagnóstico e entregas
 
+## Contato próprio — 4 de outubro de 2026
+
+A área comercial agora possui `/contato`, sem formulário: quatro motivos para conversar com a plataforma e painel branco com link direto ao WhatsApp comercial existente. Os menus da landing e do catálogo, o rodapé comercial e as chamadas de contratação levam à nova página. O catálogo branco, os contatos dos lojistas e os redirecionamentos de autenticação foram preservados. Consulte [a implementação e a validação do contato](contato.md).
+
 > Registro histórico da primeira implementação. O escopo visual e as rotas descritos abaixo foram substituídos pela [correção do catálogo](correcao-catalogo.md) e pelo [guia vigente](guia-repaginacao.md): landing escura isolada, catálogo branco original e entrada autenticada em `/catalogo`.
 
 Referências: `GUIA_REPAGINACAO_VITRINE_WEB.md` e `REFERENCIA_VISUAL_VITRINE_WEB.html`, na raiz do workspace. O conteúdo autoral do iframe define o visual; o invólucro e os controles de demonstração ficam fora do produto.

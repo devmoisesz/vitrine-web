@@ -27,6 +27,7 @@ O tema comercial não pode envolver catálogo, produto, carrinhos, pedidos, cont
 | Raiz `/`, autenticado | Vai para `/catalogo`, sem exibir a landing durante a verificação. |
 | `/catalogo` | Entrada pública de descoberta, com busca de lojas e banners/logos originais. |
 | `/lojas` | Diretório público de lojas. |
+| `/contato` | Página comercial pública, também disponível para autenticados, com acesso direto ao WhatsApp da equipe e sem formulário. |
 | `/loja/:slug` | Produtos da loja diretamente, com identidade e atendimento existentes. |
 | `/loja/:slug/produtos` | Catálogo local; link existente preservado. |
 | `/produto/:id` | Detalhe público com apresentação original e identificação da loja. |
@@ -51,6 +52,12 @@ O catálogo continua público. Não introduzir passagem obrigatória por apresen
 Manter autenticação, acesso direto, produto, estoque, tamanhos, quantidades, carrinhos separados por loja, pedidos, atendimento pelo WhatsApp, perfil, endereços e gestão. Não enviar pedidos ou mensagens reais durante verificações sem autorização específica.
 
 A plataforma apresenta as lojas; o lojista vende. Não prometer pagamentos processados pela plataforma ou cadastro autônomo de loja quando não existem. Usar os dados já cadastrados; não inventar lojas, avaliações ou métricas.
+
+## Contato da plataforma
+
+A página `/contato` usa o tema comercial escuro, com textos e quatro blocos explicativos à esquerda e painel branco de WhatsApp à direita. No celular, o painel segue os textos em uma única coluna. Reutilizar o contato comercial já existente, nunca buscar o número em uma loja participante. Incluir mensagem inicial codificada e `noopener noreferrer` ao abrir nova aba.
+
+O contato deve estar visível nos menus comercial e do catálogo e no rodapé comercial. As chamadas da plataforma apontam para `/contato`; os atendimentos próprios dos lojistas permanecem locais. Não criar formulário, endpoint de envio, banco de mensagens ou serviço adicional. Os redirecionamentos da raiz e do login são preservados.
 
 ## API
 

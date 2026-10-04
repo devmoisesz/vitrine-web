@@ -2,8 +2,9 @@
 
 Implementação de 3 de outubro de 2026, conforme o guia e o HTML de referência do workspace.
 
-- `/`: proposta da plataforma para lojistas de moda, uma vitrine cadastrada na API como exemplo contextualizado, benefícios, descoberta de lojas, fluxo de pedido e perguntas frequentes.
-- `/sobre`: apresentação para lojistas, três passos, responsabilidade do vendedor e contato comercial existente em `/sobre#contato`.
+- `/`: proposta da plataforma para visitantes; usuários autenticados vão para `/catalogo`. A landing apresenta uma vitrine cadastrada na API, benefícios, descoberta de lojas, fluxo de pedido e perguntas frequentes.
+- `/sobre`: apresentação para lojistas, três passos, responsabilidade do vendedor e chamadas para `/contato`. O antigo fragmento `#contato` continua oferecendo um link à página própria.
+- `/contato`: página comercial pública sem formulário, com quatro blocos explicativos e painel branco de acesso ao WhatsApp da equipe.
 - `/lojas`: busca de marcas, logo, banner e descrição. Sem preços ou produtos; ordem de cadastro da API. Segmento e cidade não fazem parte do contrato do diretório, portanto não há filtros inventados.
 - `/loja/:slug`: navegação e identidade da loja, catálogo direto, apresentação, endereço, modalidades cadastradas e atendimento.
 - `/loja/:slug/produtos`: catálogo local completo, compartilhando busca, filtros e paginação com a vitrine.
@@ -13,7 +14,7 @@ O contato comercial já existente foi mantido e normalizado para o formato inter
 
 O carrinho reúne itens de uma loja. O cliente autenticado revisa a seleção, registra o pedido e abre a mensagem no WhatsApp. A loja combina pagamento, entrega e conclusão da venda. A plataforma não processa pagamentos.
 
-O visual público é escuro fixo, com Arial na interface, Georgia nas marcas, fundo `#151515`, cabeçalhos `#0d0d0d`, superfícies `#242424`, texto `#f4f4f4`, secundário `#bcbcbc` e bordas `#424242`. Os tokens ficam em `.vw-theme`, em `src/styles/public.css`.
+O visual comercial é escuro fixo, com Arial na interface, Georgia nas marcas, fundo `#151515`, cabeçalhos `#0d0d0d`, superfícies `#242424`, texto `#f4f4f4`, secundário `#bcbcbc` e bordas `#424242`. Os tokens ficam em `.vw-theme`, em `src/styles/public.css`; a página de contato complementa esse escopo em `src/styles/contact.css`. Catálogo, lojas, produtos e conta preservam o visual branco original.
 
 Não há controles de demonstração, lojas fabricadas, depoimentos, métricas ou promessas de recursos ausentes. Conteúdo de demonstração que já exista no banco continua identificado pela descrição do próprio lojista.
 
