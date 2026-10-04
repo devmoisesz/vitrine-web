@@ -20,9 +20,7 @@ import {
   authenticate,
   authenticateWithGoogle,
 } from "@/features/auth/api/authenticate";
-import { getProfile } from "@/features/profile/api/profile";
-import { getAccessToken } from "@/lib/api-client";
-import { decodeJwtRole, roleToDashboardPath } from "@/lib/roles";
+import { loginDestination } from "@/lib/login-destination";
 
 declare global {
   interface Window {
@@ -88,14 +86,6 @@ function getPasswordStatus(password: string) {
   };
 }
 
-function safeReturnPath() {
-  const query = new URLSearchParams(window.location.search);
-  const destination = query.get("redirect") ?? query.get("next");
-  return destination?.startsWith("/") && !destination.startsWith("//")
-    ? destination
-    : null;
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
@@ -117,41 +107,15 @@ export default function LoginPage() {
     useWatch({ control, name: "password" }),
   );
 
-  async function finishAuthentication(sessionRole?: string | null) {
-    const explicitReturn = safeReturnPath();
-    if (explicitReturn) {
-      router.replace(explicitReturn);
-      router.refresh();
-      return;
-    }
-    // Sem redirect explícito — determina destino baseado no papel do usuário.
-    // Fonte primária: `user_role` retornado pela rota de sessão (já resolvido
-    // via GET /me no servidor). Fallback: GET /me aqui no cliente, e por último
-    // o claim `role` do JWT.
-    let role = sessionRole;
-    let token = getAccessToken();
-    if (!token) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      token = getAccessToken();
-    }
-    if (!role && token) {
-      try {
-        const profile = await getProfile(token);
-        role = profile.user_role;
-      } catch {
-        role = decodeJwtRole(token);
-      }
-    }
-    const destination = roleToDashboardPath(role);
-    console.log("[Login] Role:", role, "→", destination);
-    router.replace(destination);
+  function finishAuthentication() {
+    router.replace(loginDestination(window.location.search));
     router.refresh();
   }
   async function onSubmit(values: LoginForm) {
     setFormError(null);
     try {
-      const session = await authenticate(values);
-      await finishAuthentication(session.user_role);
+      await authenticate(values);
+      finishAuthentication();
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -164,8 +128,8 @@ export default function LoginPage() {
     setFormError(null);
     setGoogleLoading(true);
     try {
-      const session = await authenticateWithGoogle(response.credential);
-      await finishAuthentication(session.user_role);
+      await authenticateWithGoogle(response.credential);
+      finishAuthentication();
     } catch (error) {
       setFormError(
         error instanceof Error

@@ -27,7 +27,7 @@ export function isCollaboratorRole(role: string | undefined | null): boolean {
  * Retorna o caminho de destino pós-login com base no papel do usuário.
  * - "admin" → /admin
  * - "proprietario" | "funcionario" → /painel
- * - qualquer outro (cliente) → / (catálogo)
+ * - qualquer outro (cliente) → /catalogo
  */
 export function roleToDashboardPath(role: string | undefined | null): string {
   const normalized = normalizeRole(role);
@@ -35,7 +35,7 @@ export function roleToDashboardPath(role: string | undefined | null): string {
   if (normalized === "proprietario" || normalized === "funcionario") {
     return "/painel";
   }
-  return "/";
+  return "/catalogo";
 }
 
 /**
