@@ -25,7 +25,9 @@ O acesso ao catálogo é público, exigindo autenticação apenas no momento de 
 
 ## Cliente
 
-- [x] A home deve apresentar a proposta da plataforma e o contato para lojistas
+- [x] Visitantes na raiz devem ver a landing comercial escura; autenticados seguem para `/catalogo` depois da verificação da sessão, sem flash da landing
+- [x] Login normal deve levar a `/catalogo`, preservando retornos internos explícitos e rejeitando ciclos/destinos externos
+- [x] Catálogo, lojas e produtos devem preservar a estrutura branca original, com cabeçalho preto, banners, logos e categorias laterais dentro da loja
 - [x] O diretório deve apresentar apenas lojas, sem produtos ou preços
 - [x] Deve ser possível buscar e filtrar produtos dentro da loja escolhida
 - [x] Deve ser possível combinar filtros de categoria, subcategoria e busca por nome

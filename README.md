@@ -1,6 +1,6 @@
 # 🛍️ Vitrine Web — Frontend
 
-Plataforma de **vitrines digitais para lojistas de moda**. A home apresenta a solução; o diretório permite descobrir marcas; cada loja apresenta sua identidade, seu catálogo e seu atendimento.
+Plataforma de **vitrines digitais para lojistas de moda**. Visitantes veem a landing comercial escura na raiz; usuários autenticados entram diretamente em `/catalogo`. O catálogo branco preserva o visual original e permite escolher uma loja para explorar seus produtos.
 
 A negociação de pagamento e entrega acontece **fora da plataforma** (direto no WhatsApp do lojista). O acesso ao catálogo é **público** — a autenticação só é exigida para interagir com carrinho, pedidos, perfil e áreas administrativas.
 
@@ -184,7 +184,7 @@ Cada feature concentra sua **API** (chamadas HTTP) e **hooks** (TanStack Query +
 ### Cliente (compra)
 
 ```
-1. Plataforma ("/") → diretório ("/lojas")
+1. Landing ("/", visitante) → catálogo de lojas ("/catalogo") ou diretório ("/lojas")
    → entende a proposta, busca uma loja e entra na vitrine escolhida
 
 2. Loja ("/loja/:slug")
@@ -244,7 +244,7 @@ O fluxo de sessão é gerenciado pelo frontend através de **Route Handlers em `
 
 - **`GET /me`** retorna o papel efetivo: `Cliente` | `Admin` | `Proprietário` | `Funcionário`.
 - O cookie `userRole` (gravado no login/refresh a partir do `/me`, com fallback no claim `role` do JWT) orienta o redirecionamento pós-login e a proteção de rotas.
-- `src/lib/roles.ts` normaliza papéis (minúsculas, sem acento) e mapeia o destino pós-login: **Admin → `/admin`**, **Proprietário/Funcionário → `/painel`**, **Cliente → `/`**.
+- O login normal leva todos os papéis a `/catalogo`. Um retorno interno explícito retoma a ação solicitada (produto, carrinho ou área protegida). `src/lib/login-destination.ts` rejeita destinos externos e ciclos de autenticação. Os painéis continuam acessíveis no cabeçalho conforme o papel; `src/lib/roles.ts` mantém o mapeamento de painéis para os outros consumidores.
 
 ### Middleware (`src/middleware.ts`)
 
@@ -263,7 +263,7 @@ O fluxo de sessão é gerenciado pelo frontend através de **Route Handlers em `
 - **Sessão e chamadas autenticadas:** `src/lib/api-client.ts` com `credentials: "include"`, header `Authorization: Bearer <access_token>` e **auto-refresh em 401**.
 - **Catálogo público:** `src/lib/public-catalog.ts` consulta `/api/catalog/*` no Next.js. O servidor consulta a API configurada, preserva `X-Total-Count` e status, limita os caminhos a leituras públicas e não encaminha credenciais. Isso permite prévias locais sem depender da lista de origens CORS da API.
 
-Veja [o registro da repaginação](docs/repaginacao.md) para rotas, decisões, verificações e limites da entrega. O tema escuro é restrito à área pública; painel e administração conservam seus estilos. O cadastro de lojistas é solicitado pelo contato comercial em `/sobre#contato`, e realizado pelo administrador.
+Veja [o guia vigente](docs/guia-repaginacao.md) e [o registro da correção](docs/correcao-catalogo.md). O tema escuro envolve somente a landing e a página comercial `/sobre`. Catálogo, lojas, produtos e fluxos de conta usam os estilos brancos originais e o cabeçalho preto. O cadastro de lojistas é solicitado pelo contato comercial em `/sobre#contato`, e realizado pelo administrador.
 
 | Grupo              | Endpoints principais                                                                                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |

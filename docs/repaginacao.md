@@ -1,5 +1,7 @@
 # Repaginação pública — diagnóstico e entregas
 
+> Registro histórico da primeira implementação. O escopo visual e as rotas descritos abaixo foram substituídos pela [correção do catálogo](correcao-catalogo.md) e pelo [guia vigente](guia-repaginacao.md): landing escura isolada, catálogo branco original e entrada autenticada em `/catalogo`.
+
 Referências: `GUIA_REPAGINACAO_VITRINE_WEB.md` e `REFERENCIA_VISUAL_VITRINE_WEB.html`, na raiz do workspace. O conteúdo autoral do iframe define o visual; o invólucro e os controles de demonstração ficam fora do produto.
 
 ## Diagnóstico (3 de outubro de 2026)
