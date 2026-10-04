@@ -1,5 +1,6 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function StoreSearchInput({ value, onSearch }: { value: string; onSearch: (value: string) => void }) {
@@ -11,5 +12,5 @@ export function StoreSearchInput({ value, onSearch }: { value: string; onSearch:
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(() => onSearch(next.trim()), 400);
   }
-  return <div><label className="vw-search-label" htmlFor="store-search">Buscar uma loja</label><input id="store-search" type="search" value={input} onChange={e => change(e.target.value)} placeholder="Digite o nome da loja" className="vw-search" /></div>;
+  return <label className="flex h-13 w-full items-center gap-3 border-b border-foreground/30 bg-white px-1 focus-within:border-foreground"><Search aria-hidden="true" className="size-5 text-muted-foreground" /><input value={input} onChange={(event) => change(event.target.value)} placeholder="Buscar lojas pelo nome" aria-label="Buscar lojas pelo nome" className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground" /></label>;
 }

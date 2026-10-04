@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
+import { CommercialHeader } from "@/components/layout/commercial-header";
+import { CommercialLayout } from "@/components/layout/commercial-layout";
 import { LandingContactCta } from "@/components/landing/landing-contact-cta";
 
 export default function SobrePage() {
-  return <>
-    <Header />
+  return <CommercialLayout>
+    <CommercialHeader />
     <main id="conteudo">
       <section className="vw-page-intro">
         <span className="vw-eyebrow">PARA QUEM TEM UMA LOJA</span>
@@ -23,5 +24,5 @@ export default function SobrePage() {
       <section className="vw-business-note"><h2>Quem vende é a sua loja.</h2><p>A Vitrine Web oferece o espaço digital e organiza a seleção dos produtos. O atendimento, a negociação, o pagamento e a entrega são combinados diretamente entre o lojista e o cliente.</p></section>
       <LandingContactCta />
     </main>
-  </>;
+  </CommercialLayout>;
 }

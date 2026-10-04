@@ -1,47 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
+
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { QuantitySelector } from "@/components/product/quantity-selector";
 import { SizeSelector } from "@/components/product/size-selector";
-import { StoreNavigation } from "@/components/store/store-navigation";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
 import { useProductDetail } from "@/features/catalog/hooks/use-product-detail";
 import { formatBRL } from "@/lib/format";
-import type { ProductDetailResponse } from "@/types/product-detail";
+
+function ProductSkeleton() {
+  return <div className="grid gap-10 md:grid-cols-2"><div className="aspect-[3/4] animate-pulse bg-muted" /><div className="space-y-5"><div className="h-10 w-3/4 animate-pulse bg-muted" /><div className="h-5 w-1/3 animate-pulse bg-muted" /><div className="h-24 animate-pulse bg-muted" /></div></div>;
+}
 
 export default function ProductPage({ params }: { params: Promise<{ productId: string }> }) {
   const { productId } = use(params);
-  const product = useProductDetail(productId);
-  if (product.isLoading) return <main id="conteudo" className="vw-local-section" aria-busy="true"><p role="status">Carregando produto…</p><div className="mt-6 h-96 animate-pulse bg-muted" /></main>;
-  if (product.isError || !product.data) return <main id="conteudo" className="vw-local-section vw-empty"><h1>{(product.error as {status?:number})?.status === 404 ? "Produto não encontrado" : "Não foi possível carregar este produto"}</h1><p>Este produto pode não estar disponível. Confira o endereço ou tente novamente.</p><button className="vw-button" onClick={() => void product.refetch()}>Tentar novamente</button><div><Link href="/lojas" className="vw-text-button">Explorar lojas</Link></div></main>;
-  return <ProductContent key={product.data.product.id} data={product.data} />;
+  return <ProductContent key={productId} productId={productId} />;
 }
 
-function ProductContent({ data }: { data: ProductDetailResponse }) {
+function ProductContent({ productId }: { productId: string }) {
+  const { data, isLoading, isError, error, refetch } = useProductDetail(productId);
   const [size, setSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
-  const { product } = data;
-  const store = product.store;
-  return <>
-    <StoreNavigation name={store.name} slug={store.slug} logoUrl={store.logo_url || store.logo_image_url} />
-    <main id="conteudo" className="vw-product-layout">
-      <ProductGallery images={data.images} productName={product.name} />
-      <section>
-        <Link href={`/loja/${store.slug}/produtos`} className="vw-text-button">← Catálogo de {store.name}</Link>
-        <h1>{product.name}</h1>
-        <p className="vw-price">{formatBRL(product.price)}</p>
-        {product.stock <= 0 && <p className="vw-notice">Indisponível no momento</p>}
-        <SizeSelector sizes={product.sizes} value={size} onChange={setSize} />
-        <QuantitySelector value={quantity} onChange={setQuantity} />
-        <AddToCartButton productId={product.id} quantity={quantity} size={size} requiresSize={product.sizes.length > 0} outOfStock={product.stock <= 0} onSuccess={() => setNotice("Adicionado ao carrinho desta loja.")} onError={setNotice} />
-        {notice && <p className="vw-notice" role="status">{notice}</p>}
-        <p className="vw-order-note">O carrinho reúne sua seleção de {store.name}. Entre na sua conta para registrar o pedido e preparar o envio ao WhatsApp. A compra é combinada diretamente com a loja.</p>
-        {product.description && <div className="vw-description"><h2>Sobre a peça</h2><p>{product.description}</p></div>}
-        <Link href={`/loja/${store.slug}#atendimento`} className="vw-text-button">Falar com {store.name} <span aria-hidden="true">↗</span></Link>
-      </section>
-    </main>
-  </>;
+
+  useEffect(() => { if (!notice) return; const timeout = window.setTimeout(() => setNotice(null), 3000); return () => window.clearTimeout(timeout); }, [notice]);
+
+  return (
+    <div className="min-h-screen bg-background"><Header storeSlug={data?.product.store.slug} /><main id="conteudo" className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
+      {isLoading ? <ProductSkeleton /> : isError || !data ? (
+        <div className="border border-dashed border-border p-10 text-center">
+          <h1 className="font-display text-2xl font-semibold">{(error as { status?: number } | null)?.status === 404 ? "Produto não encontrado" : "Não foi possível carregar este produto"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{(error as { status?: number } | null)?.status === 404 ? "Este produto pode não estar mais disponível." : "Verifique sua conexão e tente novamente."}</p>
+          {(error as { status?: number } | null)?.status === 404 ? <Link href="/catalogo" className="mt-6 inline-block bg-foreground px-5 py-2 text-sm text-background">Voltar para o catálogo</Link> : <Button className="mt-6" onClick={() => void refetch()}>Tentar novamente</Button>}
+        </div>
+      ) : (
+        <div className="grid gap-10 md:grid-cols-2"><ProductGallery key={data.product.id} images={data.images} productName={data.product.name} /><section>
+          <Link href={`/loja/${data.product.store.slug}/produtos`} className="text-sm text-muted-foreground underline underline-offset-4">{data.product.store.name}</Link>
+          <h1 className="mt-2 font-display text-3xl font-semibold md:text-4xl">{data.product.name}</h1>
+          <p className="mt-4 text-xl font-medium">{formatBRL(data.product.price)}</p>
+          {data.product.stock <= 0 && <span className="mt-5 inline-block bg-foreground px-3 py-1 text-xs uppercase tracking-wider text-background">Indisponível</span>}
+          <SizeSelector sizes={data.product.sizes} value={size} onChange={setSize} />
+          <QuantitySelector value={quantity} onChange={setQuantity} />
+          <AddToCartButton productId={data.product.id} quantity={quantity} size={size} requiresSize={data.product.sizes.length > 0} outOfStock={data.product.stock <= 0} onSuccess={() => setNotice("Adicionado ao carrinho") } onError={setNotice} />
+          {notice && <p role="status" className="mt-3 text-sm text-muted-foreground">{notice}</p>}
+          <p className="mt-4 text-sm text-muted-foreground">O carrinho reúne produtos desta loja. O pedido é preparado para envio pelo WhatsApp; pagamento e entrega são combinados com o lojista.</p><Link href={`/loja/${data.product.store.slug}#atendimento`} className="mt-3 inline-block text-sm underline">Falar com {data.product.store.name}</Link>
+          {data.product.description && <div className="mt-9 border-t border-border pt-6"><h2 className="font-display text-xl font-semibold">Descrição</h2><p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{data.product.description}</p></div>}
+        </section></div>
+      )}
+    </main></div>
+  );
 }
