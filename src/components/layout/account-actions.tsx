@@ -45,5 +45,5 @@ export function AccountActions() {
 export function MerchantLink({ children, className = "vw-button" }: { children: React.ReactNode; className?: string }) {
   const { role, isLoading } = useAuth();
   const dashboard = !isLoading && (isAdminRole(role) ? "/admin" : isCollaboratorRole(role) ? "/painel" : null);
-  return <Link className={className} href={dashboard || "/sobre#contato"}>{dashboard ? "Acessar meu painel" : children}<span aria-hidden="true">↗</span></Link>;
+  return <Link className={className} href={dashboard || "/contato"}>{dashboard ? "Acessar meu painel" : children}<span aria-hidden="true">↗</span></Link>;
 }

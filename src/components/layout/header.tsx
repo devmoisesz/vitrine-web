@@ -122,7 +122,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
   return (
     <header className="sticky top-0 z-40 bg-foreground text-background">
       <div className="relative mx-auto flex min-h-24 max-w-[1400px] flex-wrap items-center px-3 pb-3 md:h-32 md:flex-nowrap md:px-8 md:pb-0">
-        <div className="order-2 flex w-full items-center gap-4 md:absolute md:left-8 md:order-none md:w-auto">
+        <nav aria-label="Menu principal" className="order-2 flex w-full items-center gap-4 md:absolute md:left-8 md:order-none md:w-auto [&_a]:focus-visible:outline-2 [&_a]:focus-visible:outline-offset-4">
           <Link
             href="/lojas"
             className="text-sm font-medium transition-opacity hover:opacity-70"
@@ -135,6 +135,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
           >
             Entenda a Vitrine Web
           </Link>
+          <Link href="/contato" className="text-sm font-medium transition-opacity hover:opacity-70">Contato</Link>
           {dashboard ? (
             <Link
               href={dashboard.href}
@@ -143,7 +144,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
               {dashboard.label}
             </Link>
           ) : null}
-        </div>
+        </nav>
 
         <Link href="/catalogo" className="shrink-0 transition-opacity hover:opacity-80 md:mx-auto">
           <Image

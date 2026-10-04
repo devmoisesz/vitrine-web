@@ -11,7 +11,7 @@ export default function SobrePage() {
         <span className="vw-eyebrow">PARA QUEM TEM UMA LOJA</span>
         <h1>Seu negócio merece<br />um espaço próprio.</h1>
         <p className="vw-lead">Apresente sua marca, facilite a escolha dos produtos e mantenha o atendimento nas mãos da sua loja de moda.</p>
-        <Link href="#contato" className="vw-button">Conversar sobre minha vitrine <span aria-hidden="true">→</span></Link>
+        <Link href="/contato" className="vw-button">Conversar sobre minha vitrine <span aria-hidden="true">→</span></Link>
       </section>
       <section className="vw-steps">
         <h2>Como funciona para o lojista</h2>

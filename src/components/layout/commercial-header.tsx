@@ -9,7 +9,7 @@ export function CommercialHeader() {
       <Link className="vw-nav" href="/sobre">Para lojistas</Link>
       <Link className="vw-nav" href="/catalogo">Acessar catálogo</Link>
       <Link className="vw-nav" href="/lojas">Explorar lojas</Link>
-      <Link className="vw-nav" href="/sobre#contato">Contato</Link>
+      <Link className="vw-nav" href="/contato">Contato</Link>
     </nav>
     <div className="vw-header-actions"><AccountActions /><MerchantLink className="vw-button vw-inverse">Quero minha vitrine</MerchantLink></div>
   </header>;
