@@ -22,7 +22,7 @@ type ErrorRule = {
 
 // Mensagens que já possuem indícios claros de português são preservadas.
 const PORTUGUESE_HINTS =
-  /(n[ãa]o|voc[eê]|sess[ãa]o|senha|tente|tentar|endere[çc]o|carrinho|pedido|dados|cadastr|permiss[ãa]o|lojista|produto|imagem|sucesso)/i;
+  /(n[ãa]o|voc[eê]|sess[ãa]o|senha|tente|tentar|endere[çc]o|carrinho|pedido|dados|cadastr|permiss[ãa]o|lojista|produto|imagem|sucesso|segmento)/i;
 
 const RULES: ErrorRule[] = [
   // ─── Login / Google ──────────────────────────────────────────────
