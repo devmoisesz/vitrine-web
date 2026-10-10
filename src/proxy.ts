@@ -21,7 +21,11 @@ export async function proxy(request: NextRequest) {
   const refreshToken = request.cookies.get("refreshToken")?.value;
   const accessToken = request.cookies.get("accessToken")?.value;
 
-  if (!refreshToken) return NextResponse.redirect(new URL("/", request.url));
+  if (!refreshToken) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("redirect", pathname + request.nextUrl.search);
+    return NextResponse.redirect(login);
+  }
 
   try {
     // userRole é apenas cache da UI; a autorização vem do papel efetivo em /me.

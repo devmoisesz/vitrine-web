@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { productSelectionHref, readProductSelection } from "@/lib/product-selection";
 
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { ProductGallery } from "@/components/product/product-gallery";
@@ -18,13 +20,17 @@ function ProductSkeleton() {
 
 export default function ProductPage({ params }: { params: Promise<{ productId: string }> }) {
   const { productId } = use(params);
-  return <ProductContent key={productId} productId={productId} />;
+  return <Suspense fallback={<ProductSkeleton />}><ProductContent key={productId} productId={productId} /></Suspense>;
 }
 
 function ProductContent({ productId }: { productId: string }) {
   const { data, isLoading, isError, error, refetch } = useProductDetail(productId);
-  const [size, setSize] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const params = useSearchParams();
+  const { size, quantity } = readProductSelection(params, data?.product.sizes ?? [], data?.product.stock ?? 0);
+  function select(nextSize: string | null, nextQuantity: number) {
+    // Keep selections synchronous: a server navigation can discard rapid successive clicks.
+    window.history.replaceState(null, "", productSelectionHref(productId, window.location.search, nextSize, nextQuantity, window.location.hash));
+  }
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => { if (!notice) return; const timeout = window.setTimeout(() => setNotice(null), 3000); return () => window.clearTimeout(timeout); }, [notice]);
@@ -35,7 +41,7 @@ function ProductContent({ productId }: { productId: string }) {
         <div className="border border-dashed border-border p-10 text-center">
           <h1 className="font-display text-2xl font-semibold">{(error as { status?: number } | null)?.status === 404 ? "Produto não encontrado" : "Não foi possível carregar este produto"}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{(error as { status?: number } | null)?.status === 404 ? "Este produto pode não estar mais disponível." : "Verifique sua conexão e tente novamente."}</p>
-          {(error as { status?: number } | null)?.status === 404 ? <Link href="/catalogo" className="mt-6 inline-block bg-foreground px-5 py-2 text-sm text-background">Voltar para o catálogo</Link> : <Button className="mt-6" onClick={() => void refetch()}>Tentar novamente</Button>}
+          {(error as { status?: number } | null)?.status === 404 ? <Link href="/lojas" className="mt-6 inline-block bg-foreground px-5 py-2 text-sm text-background">Explorar lojas</Link> : <Button className="mt-6" onClick={() => void refetch()}>Tentar novamente</Button>}
         </div>
       ) : (
         <div className="grid gap-10 md:grid-cols-2"><ProductGallery key={data.product.id} images={data.images} productName={data.product.name} /><section>
@@ -43,8 +49,8 @@ function ProductContent({ productId }: { productId: string }) {
           <h1 className="mt-2 font-display text-3xl font-semibold md:text-4xl">{data.product.name}</h1>
           <p className="mt-4 text-xl font-medium">{formatBRL(data.product.price)}</p>
           {data.product.stock <= 0 && <span className="mt-5 inline-block bg-foreground px-3 py-1 text-xs uppercase tracking-wider text-background">Indisponível</span>}
-          <SizeSelector sizes={data.product.sizes} value={size} onChange={setSize} />
-          <QuantitySelector value={quantity} onChange={setQuantity} />
+          <SizeSelector sizes={data.product.sizes} value={size} onChange={value => select(value, quantity)} />
+          <QuantitySelector value={quantity} max={Math.max(1, data.product.stock)} onChange={value => select(size, value)} />
           <AddToCartButton productId={data.product.id} quantity={quantity} size={size} requiresSize={data.product.sizes.length > 0} outOfStock={data.product.stock <= 0} onSuccess={() => setNotice("Adicionado ao carrinho") } onError={setNotice} />
           {notice && <p role="status" className="mt-3 text-sm text-muted-foreground">{notice}</p>}
           <p className="mt-4 text-sm text-muted-foreground">O carrinho reúne produtos desta loja. O pedido é preparado para envio pelo WhatsApp; pagamento e entrega são combinados com o lojista.</p><Link href={`/loja/${data.product.store.slug}#atendimento`} className="mt-3 inline-block text-sm underline">Falar com {data.product.store.name}</Link>

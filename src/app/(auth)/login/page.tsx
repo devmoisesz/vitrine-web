@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AuthSwitchLink } from "@/components/auth/auth-switch-link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -107,15 +107,14 @@ export default function LoginPage() {
     useWatch({ control, name: "password" }),
   );
 
-  function finishAuthentication() {
-    router.replace(loginDestination(window.location.search));
-    router.refresh();
+  function finishAuthentication(role?: string | null) {
+    router.replace(loginDestination(window.location.search, role));
   }
   async function onSubmit(values: LoginForm) {
     setFormError(null);
     try {
-      await authenticate(values);
-      finishAuthentication();
+      const session = await authenticate(values);
+      finishAuthentication(session.user_role);
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -128,8 +127,8 @@ export default function LoginPage() {
     setFormError(null);
     setGoogleLoading(true);
     try {
-      await authenticateWithGoogle(response.credential);
-      finishAuthentication();
+      const session = await authenticateWithGoogle(response.credential);
+      finishAuthentication(session.user_role);
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -399,12 +398,9 @@ export default function LoginPage() {
           <motion.div variants={staggerItem}>
             <p className="mt-8 text-center text-sm text-gray-500">
               Ainda não tem uma conta?{" "}
-              <Link
-                className="font-bold text-black underline underline-offset-4"
-                href="/cadastro"
-              >
+              <AuthSwitchLink route="/cadastro">
                 Criar conta
-              </Link>
+              </AuthSwitchLink>
             </p>
             <p className="mt-10 flex items-center justify-center gap-2 text-center text-xs text-gray-500">
               <LockKeyhole aria-hidden="true" className="size-3.5" /> Seus dados

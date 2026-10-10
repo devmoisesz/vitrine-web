@@ -21,16 +21,18 @@ function load(relative, mocks = {}) {
   return loaded.exports;
 }
 
-const { loginDestination } = load("src/lib/login-destination.ts");
+const roles = load("src/lib/roles.ts");
+const discovery = load("src/lib/store-discovery.ts");
+const { loginDestination } = load("src/lib/login-destination.ts", { "./roles": roles, "./store-discovery": discovery });
 test("normal login opens the catalogue and explicit purchase returns remain internal", () => {
-  assert.equal(loginDestination(""), "/catalogo");
+  assert.equal(loginDestination(""), "/lojas");
   assert.equal(loginDestination("?redirect=/produto/jaqueta"), "/produto/jaqueta");
   assert.equal(loginDestination("?next=/carrinhos/cart-id/checkout"), "/carrinhos/cart-id/checkout");
-  assert.equal(loginDestination("?redirect=/painel"), "/painel");
+  assert.equal(loginDestination("?redirect=/painel", "Proprietário"), "/painel");
 });
 test("login avoids root/auth loops and external return paths", () => {
   for (const value of ["/", "/login", "/login/", "/cadastro", "/session/restore?returnTo=/", "//outside.test", "https://outside.test", "/\\outside.test", "/test\n"]) {
-    assert.equal(loginDestination("?redirect=" + encodeURIComponent(value)), "/catalogo", value);
+    assert.equal(loginDestination("?redirect=" + encodeURIComponent(value)), "/lojas", value);
   }
 });
 
@@ -42,6 +44,7 @@ test("the home waits for session restoration without rendering the landing, then
     react: { ...React, useEffect: callback => effects.push(callback) },
     "next/navigation": { useRouter: () => ({ replace: path => redirects.push(path) }) },
     "@/features/auth/hooks/use-auth": { useAuth: () => auth },
+    "@/lib/roles": roles,
   });
   const render = () => {
     effects = [];
@@ -59,7 +62,7 @@ test("the home waits for session restoration without rendering the landing, then
   assert.deepEqual(redirects, []);
   auth = { isLoading: false, isAuthenticated: true };
   assert.doesNotMatch(render(), /Landing comercial/);
-  assert.deepEqual(redirects, ["/catalogo"]);
+  assert.deepEqual(redirects, ["/lojas"]);
 });
 
 test("store cache separates stores and all filters without displaying previous results", () => {

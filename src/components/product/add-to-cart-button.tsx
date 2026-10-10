@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useAddToCart } from "@/features/cart/hooks/use-add-to-cart";
+import { authHref } from "@/lib/login-destination";
+import { productSelectionHref } from "@/lib/product-selection";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -24,7 +26,7 @@ export function AddToCartButton({ productId, quantity, size, requiresSize, outOf
 
   function handleClick() {
     if (!isAuthenticated || !accessToken) {
-      router.push(`/login?redirect=/produto/${productId}`);
+      router.push(authHref("/login", productSelectionHref(productId, window.location.search, size, quantity, window.location.hash)));
       return;
     }
     addToCart.mutate(

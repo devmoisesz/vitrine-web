@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AuthSwitchLink } from "@/components/auth/auth-switch-link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,7 +16,7 @@ import {
   authenticateWithGoogle,
 } from "@/features/auth/api/authenticate";
 import { registerAccount } from "@/features/auth/api/register-account";
-import { roleToDashboardPath } from "@/lib/roles";
+import { loginDestination } from "@/lib/login-destination";
 
 const registerSchema = z
   .object({
@@ -64,8 +64,7 @@ export default function RegisterPage() {
     try {
       await registerAccount({ name, email, password });
       const session = await authenticate({ email, password });
-      router.replace(roleToDashboardPath(session.user_role));
-      router.refresh();
+      router.replace(loginDestination(window.location.search, session.user_role));
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -80,8 +79,7 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     try {
       const session = await authenticateWithGoogle(response.credential);
-      router.replace(roleToDashboardPath(session.user_role));
-      router.refresh();
+      router.replace(loginDestination(window.location.search, session.user_role));
     } catch (error) {
       setFormError(
         error instanceof Error
@@ -302,12 +300,9 @@ export default function RegisterPage() {
 
         <p className="mt-8 text-center text-sm text-gray-500">
           Já tem uma conta?{" "}
-          <Link
-            className="font-bold text-black underline underline-offset-4"
-            href="/login"
-          >
+          <AuthSwitchLink route="/login">
             Entrar
-          </Link>
+          </AuthSwitchLink>
         </p>
         <p className="mt-10 flex items-center justify-center gap-2 text-center text-xs text-gray-500">
           <LockKeyhole aria-hidden="true" className="size-3.5" /> Seus dados são

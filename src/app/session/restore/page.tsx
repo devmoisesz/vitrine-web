@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { refreshSession } from "@/lib/api-client";
+import { getUserRole } from "@/lib/api-client";
+import { authHref, loginDestination } from "@/lib/login-destination";
 
 export default function RestoreSessionPage() {
   useEffect(() => {
@@ -19,7 +21,9 @@ export default function RestoreSessionPage() {
     }
 
     void refreshSession().then((restored) => {
-      if (!cancelled) window.location.replace(restored ? safeDestination : "/login");
+      if (!cancelled) window.location.replace(restored
+        ? loginDestination(new URLSearchParams({ redirect: safeDestination }).toString(), getUserRole())
+        : authHref("/login", safeDestination));
     });
     return () => { cancelled = true; };
   }, []);
