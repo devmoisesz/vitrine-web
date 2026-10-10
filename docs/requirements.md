@@ -25,8 +25,11 @@ O acesso ao catálogo é público, exigindo autenticação apenas no momento de 
 
 ## Cliente
 
-- [x] Visitantes na raiz devem ver a landing comercial escura; autenticados seguem para `/catalogo` depois da verificação da sessão, sem flash da landing
-- [x] Login normal deve levar a `/catalogo`, preservando retornos internos explícitos e rejeitando ciclos/destinos externos
+- [x] Visitantes na raiz veem a landing comercial; consumidores autenticados seguem para `/lojas`, mantendo os painéis dos demais papéis
+- [x] Login e cadastro preservam destinos internos permitidos e seleções do produto; sem destino, o consumidor segue para `/lojas`
+- [x] `/catalogo` redireciona para `/lojas`, preservando consultas compatíveis
+- [x] Explorar lojas combina busca e múltiplos segmentos da API antes da paginação, com URL compartilhável e filtros acessíveis
+- [x] Cards têm logo inteira quadrada, segmentos reais e descrição completa, inclusive sem logo ou segmento
 - [x] Catálogo, lojas e produtos devem preservar a estrutura branca original, com cabeçalho preto, banners, logos e categorias laterais dentro da loja
 - [x] O diretório deve apresentar apenas lojas, sem produtos ou preços
 - [x] Deve ser possível buscar e filtrar produtos dentro da loja escolhida
@@ -66,11 +69,13 @@ O acesso ao catálogo é público, exigindo autenticação apenas no momento de 
 - [x] Deve ser possível cadastrar funcionários e vinculá-los à própria loja
 - [x] Deve ser possível cadastrar endereço da loja
 - [x] Deve ser possível editar os dados da própria loja
+- [x] Deve ser possível atribuir vários segmentos existentes à própria loja, ou remover todas as associações
 - [x] Deve ser possível desativar funcionários da própria loja
 
 ## Admin da Plataforma
 
 - [x] Deve ser possível cadastrar lojas 
+- [x] Deve ser possível cadastrar/editar segmentos e excluí-los somente quando não associados a lojas
 - [x] Deve ser possível cadastrar o Dono de uma loja e vinculá-lo a ela
 - [x] Deve ser possível desativar e reativar lojas
 - [x] Deve ser possível cadastrar categorias principais na plataforma

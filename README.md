@@ -1,6 +1,6 @@
 # 🛍️ Vitrine Web — Frontend
 
-Plataforma de **vitrines digitais para lojistas de moda**. Visitantes veem a landing comercial escura na raiz; usuários autenticados entram diretamente em `/catalogo`. O catálogo branco preserva o visual original e permite escolher uma loja para explorar seus produtos.
+Plataforma de **vitrines digitais para lojistas**. Visitantes veem a landing comercial escura na raiz; consumidores autenticados entram em `/lojas` e os demais papéis mantêm seus painéis. “Explorar lojas” tem fundo branco, cabeçalho preto e filtros por segmentos administráveis. O catálogo de produtos pertence a cada loja. Consulte a [entrega e verificação de Explorar lojas](docs/explorar-lojas.md).
 
 A negociação de pagamento e entrega acontece **fora da plataforma** (direto no WhatsApp do lojista). O acesso ao catálogo é **público** — a autenticação só é exigida para interagir com carrinho, pedidos, perfil e áreas administrativas.
 
@@ -184,7 +184,7 @@ Cada feature concentra sua **API** (chamadas HTTP) e **hooks** (TanStack Query +
 ### Cliente (compra)
 
 ```
-1. Landing ("/", visitante) → catálogo de lojas ("/catalogo") ou diretório ("/lojas")
+1. Landing ("/", visitante) → Explorar lojas ("/lojas"); "/catalogo" é um redirecionamento de compatibilidade.
    → entende a proposta, busca uma loja e entra na vitrine escolhida
 
 2. Loja ("/loja/:slug")
@@ -244,7 +244,7 @@ O fluxo de sessão é gerenciado pelo frontend através de **Route Handlers em `
 
 - **`GET /me`** retorna o papel efetivo: `Cliente` | `Admin` | `Proprietário` | `Funcionário`.
 - O cookie `userRole` (gravado no login/refresh a partir do `/me`, com fallback no claim `role` do JWT) orienta o redirecionamento pós-login e a proteção de rotas.
-- O login normal leva todos os papéis a `/catalogo`. Um retorno interno explícito retoma a ação solicitada (produto, carrinho ou área protegida). `src/lib/login-destination.ts` rejeita destinos externos e ciclos de autenticação. Os painéis continuam acessíveis no cabeçalho conforme o papel; `src/lib/roles.ts` mantém o mapeamento de painéis para os outros consumidores.
+- Login e cadastro retomam o destino interno permitido, incluindo produto, tamanho, quantidade e parâmetros. Sem destino válido, consumidores vão para `/lojas`, administrador para `/admin` e lojista/funcionário para `/painel`. `src/lib/login-destination.ts` rejeita destinos externos, rotas não permitidas e ciclos; nenhuma ação de compra é executada automaticamente.
 
 ### Middleware (`src/middleware.ts`)
 

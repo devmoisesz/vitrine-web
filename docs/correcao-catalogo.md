@@ -1,5 +1,7 @@
 # Correção de escopo — catálogo original
 
+> Registro histórico. A consolidação de rotas, os cards de loja, os segmentos e os destinos após autenticação foram atualizados na [entrega Explorar lojas](explorar-lojas.md).
+
 Esta entrega substitui a aplicação do visual escuro ao catálogo na primeira repaginação. O [guia vigente](guia-repaginacao.md), também atualizado na raiz do workspace, registra as instruções mais recentes do usuário.
 
 ## Referência e recuperação

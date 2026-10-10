@@ -1,92 +1,55 @@
-# Vitrine Web — correção com escopo limitado
+# Vitrine Web — diretrizes vigentes
 
-## Diretriz vigente
+Este guia incorpora a consolidação de “Explorar lojas” de outubro de 2026 e substitui instruções anteriores conflitantes sobre /catalogo, cards e destino após autenticação. Consulte [implementação e verificação](explorar-lojas.md).
 
-Este documento registra as instruções mais recentes do usuário, que substituem orientações conflitantes da repaginação anterior. A tarefa é acrescentar a landing comercial e ajustar navegação e buscas, preservando o catálogo original. Não é uma nova reformulação completa.
+## Apresentações
 
-Referências:
-- Catálogo publicado: https://vitrineweb-app.vercel.app/
-- Base original do front-end no Git: `b794e7c`.
-- `REFERENCIA_VISUAL_VITRINE_WEB.html`: referência somente para a landing comercial.
+A página comercial permanece como entrada geral para visitantes não autenticados, com tema escuro isolado, informações institucionais, benefícios e contato da plataforma. Não transformar a raiz anônima numa listagem.
 
-## Duas apresentações separadas
+A descoberta de lojas mantém fundo predominantemente branco e cabeçalho preto. Cada card representa uma loja com catálogo próprio: logo inteira em área quadrada neutra com margem, nome destacado, segmentos cadastrados, descrição completa e “Explorar loja”. Sem banner nos cards, círculo, preço, desconto, avaliações, carrinho ou corte de descrição. Loja sem logo usa apresentação neutra; sem segmento não recebe etiqueta fictícia.
 
-### Comercial
-Manter a predominância preta/escura na landing e na apresentação para lojistas. Explicar o propósito da Vitrine Web, os recursos existentes, o cadastro assistido e o papel do lojista na venda. Apresentar lojas participantes com dados reais e entradas claras para **Acessar catálogo**, **Explorar lojas** e **Entrar**.
+O cabeçalho simplificado só se aplica à descoberta: marca, Explorar lojas, entrada/conta/carrinho e acesso aos painéis conforme a sessão. Informações institucionais e contato continuam na página comercial e no rodapé.
 
-### Catálogo e exploração
-Recuperar do Git a estrutura branca original: cabeçalho preto com logo central, banners largos, logos sobrepostos, categorias laterais em desktop e apresentação original dos produtos. Usar os componentes existentes de galeria, cartões, tamanhos, quantidade e carrinho. Mudar apenas o necessário para organizar as lojas e suas buscas.
+Dentro da loja, manter banners, identidade, catálogo, galeria, cartões de produto, categorias, tamanhos, quantidade, carrinho e atendimento existentes. Não implementar vídeo, prévia ao passar o mouse, busca global ou grades de produtos de lojas diferentes.
 
-O tema comercial não pode envolver catálogo, produto, carrinhos, pedidos, conta ou painel. Trocar somente as cores do catálogo redesenhado não atende ao escopo.
-
-## Rotas e sessão
+## Rotas e autenticação
 
 | Acesso | Comportamento |
 | --- | --- |
-| Raiz `/`, visitante | Aguarda a verificação da sessão e apresenta a landing comercial. |
-| Raiz `/`, autenticado | Vai para `/catalogo`, sem exibir a landing durante a verificação. |
-| `/catalogo` | Entrada pública de descoberta, com busca de lojas e banners/logos originais. |
-| `/lojas` | Diretório público de lojas. |
-| `/contato` | Página comercial pública, também disponível para autenticados, com acesso direto ao WhatsApp da equipe e sem formulário. |
-| `/loja/:slug` | Produtos da loja diretamente, com identidade e atendimento existentes. |
-| `/loja/:slug/produtos` | Catálogo local; link existente preservado. |
-| `/produto/:id` | Detalhe público com apresentação original e identificação da loja. |
-| Login normal | Destino `/catalogo`, para todos os papéis. |
-| Login com retorno interno explícito | Retoma produto, carrinho ou rota protegida solicitada; rejeita destinos externos e ciclos de autenticação. |
-| Links antigos de busca global | Levam ao catálogo de lojas com aviso de que a busca de produtos acontece dentro da loja. |
+| /, visitante | Verifica a sessão e apresenta a página comercial |
+| /, consumidor autenticado | /lojas |
+| /, administrador ou colaborador | Painel correspondente ao papel efetivo |
+| /lojas | Descoberta pública “Explorar lojas” |
+| /catalogo | Redirect permanente para /lojas, com consultas compatíveis |
+| /sobre e /contato | Informações comerciais públicas |
+| /loja/:slug e /loja/:slug/produtos | Catálogo público da loja; links preservados |
+| /produto/:id | Detalhe público, com tamanho/quantidade restauráveis pela URL |
+| Login ou cadastro com retorno válido | Retoma o destino interno autorizado, preservando parâmetros e seleções |
+| Autenticação sem retorno válido | /lojas para cliente; /admin ou /painel para os papéis correspondentes |
 
-O catálogo continua público. Não introduzir passagem obrigatória por apresentação comercial da loja. Painéis permanecem disponíveis conforme o papel real; não alterar guards ou permissões para facilitar a navegação.
+Não executar ações de carrinho ou pedido automaticamente após autenticação. Rejeitar destinos externos, endpoints, rotas desconhecidas, telas de autenticação e destinos proibidos ao papel. Manter a autorização efetiva na API.
 
-## Buscas e isolamento
+## Busca e filtros
 
-- Fora de uma loja: pesquisar lojas, com identidade e acesso aos respectivos catálogos.
-- Dentro de uma loja: pesquisar produtos da loja solicitada.
-- Não consultar ou renderizar grade global de produtos/preços de diferentes lojistas.
-- Categorias, subcategorias, busca, contagem e paginação devem respeitar o escopo no servidor.
-- Manter a loja e todos os filtros na chave de cache. Não reutilizar resultados anteriores de outra loja.
-- Trocar de loja com links sem filtros herdados. Limpar a página ao mudar a busca ou os filtros.
-- Categorias de produtos ficam dentro da loja; a taxonomia existente pode ser compartilhada, mas resultados e contagens são locais.
+- Busca por lojas no conteúdo, com botão Filtrar acima dela.
+- Painel acessível “Filtrar lojas”: segmentos da API, múltipla seleção, aplicar, limpar, fechar, teclado e mobile.
+- Nenhum segmento: todas as lojas elegíveis; múltiplos: pelo menos um correspondente, sem lojas duplicadas.
+- Busca e segmentos combinados na API antes da paginação, com contagem correta.
+- Estado na URL e no cache; alterações retornam à primeira página. Filtros aplicados removíveis, carregamento, erro e nenhum resultado.
+- Busca de produtos, categorias, subcategorias e contagens restritas à loja escolhida. Não reutilizar resultados de outra loja.
 
-## Funcionalidades preservadas
+## Segmentos e dados
 
-Manter autenticação, acesso direto, produto, estoque, tamanhos, quantidades, carrinhos separados por loja, pedidos, atendimento pelo WhatsApp, perfil, endereços e gestão. Não enviar pedidos ou mensagens reais durante verificações sem autorização específica.
+Segmentos representam tipos de loja; categorias representam produtos. Somente o administrador gerencia a lista de segmentos. Associação múltipla no cadastro e edição segue as permissões existentes para editar a loja. Exclusão de segmento associado é bloqueada com mensagem compreensível.
 
-A plataforma apresenta as lojas; o lojista vende. Não prometer pagamentos processados pela plataforma ou cadastro autônomo de loja quando não existem. Usar os dados já cadastrados; não inventar lojas, avaliações ou métricas.
+A migração da API é incremental. Preservar as duas lojas existentes e seus links, produtos, usuários e demais registros. Elas podem permanecer sem segmentos. Não criar exemplos nem classificar lojas automaticamente.
 
-## Contato da plataforma
+## Contato e responsabilidades
 
-A página `/contato` usa o tema comercial escuro, com textos e quatro blocos explicativos à esquerda e painel branco de WhatsApp à direita. No celular, o painel segue os textos em uma única coluna. Reutilizar o contato comercial já existente, nunca buscar o número em uma loja participante. Incluir mensagem inicial codificada e `noopener noreferrer` ao abrir nova aba.
+O lojista conduz pagamento, entrega e venda. Preservar atendimento local e o contato comercial já existente, sem formulário de envio adicional ou mensagens reais em testes. Não prometer recursos ausentes.
 
-O contato deve estar visível nos menus comercial e do catálogo e no rodapé comercial. As chamadas da plataforma apontam para `/contato`; os atendimentos próprios dos lojistas permanecem locais. Não criar formulário, endpoint de envio, banco de mensagens ou serviço adicional. Os redirecionamentos da raiz e do login são preservados.
+## Versionamento e verificação
 
-## API
+Respeitar Next.js/React/Tailwind, Base UI, React Query, RHF/Zod e os padrões da API NestJS/Prisma. Reutilizar componentes e preservar alterações do usuário. Commits pequenos por finalidade, com revisão do conteúdo; sem push, deploy ou alterações de produção.
 
-Verificar primeiro os contratos existentes:
-- `GET /stores`: busca de lojas por nome/descrição e paginação.
-- `GET /store/:slug`: dados públicos da loja.
-- `GET /store/:slug/products`: produtos, busca, categorias, contagem e paginação da loja.
-- `GET /products/:id`: detalhe e vínculo produto–loja.
-
-Alterar a API somente se faltar uma garantia necessária. Não filtrar globalmente no navegador como substituto do escopo no servidor. Preservar endpoints globais por compatibilidade quando outros consumidores puderem existir. Não apagar dados nem criar migrações para recuperar o visual.
-
-## Implementação e versionamento
-
-- Usar a arquitetura Next.js existente, com estilos comerciais isolados em componentes próprios.
-- Recuperar os componentes originais pelo histórico; conservar correções funcionais compatíveis.
-- Repositórios independentes: respeitar branches, convenções e versões de cada um.
-- Fazer commits pequenos por implementação, correção, testes ou documentação.
-- Não alterar versões sem exigência do processo existente. Não publicar, fazer deploy, criar release ou push.
-- Registrar os arquivos recuperados, ajustes necessários, testes, evidências e cenários não verificados.
-
-## Validação
-
-Conferir no navegador:
-- Landing escura e catálogo predominantemente branco, comparado à versão publicada.
-- Acesso público ao catálogo, lojas e produtos.
-- Entrada autenticada na raiz e login normal levando ao catálogo, sem ciclos ou flash da landing.
-- Busca externa retornando lojas e busca local retornando somente produtos da loja.
-- Categorias, subcategorias, paginação, troca de loja e limpeza de filtros.
-- Detalhes de produtos, carrinhos separados e atendimento.
-- Desktop e celular, sem sobreposição ou rolagem horizontal indevida.
-
-Executar tipos, lint, build e testes proporcionais, principalmente sessão, destinos de login, transporte de consultas e isolamento no servidor. Registrar claramente limitações de acesso, dados ou ambiente. Não declarar validação de cenários que não foram exercitados.
+Verificar migração com dados preexistentes, associações/permissões, filtros/contagem/paginação, cards extremos, desktop/mobile, redirect legado, login/cadastro e isolamento de produtos. Registrar testes, evidências e limitações sem declarar cenários não exercitados.
