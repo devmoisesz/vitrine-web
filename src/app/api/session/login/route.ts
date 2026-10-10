@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resolveUserRole } from "@/lib/session-role";
+import { setSessionCookies } from "@/lib/session-cookies";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -15,35 +16,7 @@ async function sessionResponse(data: {
     access_token: data.access_token,
     user_role: userRole,
   });
-  response.cookies.set("refreshToken", data.refresh_token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60, // 1h — alinhado ao refresh token do backend
-  });
-  // Grava o role em um cookie legível pelo middleware, normalizado
-  // (minúsculas, sem acento) para evitar problemas de encoding.
-  response.cookies.set("accessToken", data.access_token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 15 * 60,
-  });
-  if (userRole) {
-    response.cookies.set("userRole", userRole, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60,
-    });
-  } else {
-    // Evita manter um papel de uma sessão anterior caso a resolução do perfil
-    // não esteja disponível para o usuário recém-autenticado.
-    response.cookies.delete("userRole");
-  }
+  setSessionCookies(response, data, userRole);
   return response;
 }
 

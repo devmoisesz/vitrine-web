@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resolveUserRole } from "@/lib/session-role";
+import { setSessionCookies } from "@/lib/session-cookies";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -30,21 +31,6 @@ export async function POST(request: Request) {
     access_token: data.access_token,
     user_role: userRole,
   });
-  response.cookies.set("refreshToken", data.refresh_token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60,
-  });
-  if (userRole) {
-    response.cookies.set("userRole", userRole, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60,
-    });
-  }
+  setSessionCookies(response, data, userRole);
   return response;
 }

@@ -1,28 +1,8 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { createRequire } from 'node:module';
-import { runInThisContext } from 'node:vm';
-import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+import { load } from './load-ts.mjs';
 import nextServer from 'next/server.js';
 const { NextRequest } = nextServer;
-const testDirectory = path.dirname(fileURLToPath(import.meta.url));
-
-// Exercise the actual TypeScript modules using Node's test runner; no extra test dependency.
-function load(relativePath, mocks = {}) {
-  const filename = path.resolve(testDirectory, '..', relativePath);
-  const { outputText } = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const mod = { exports: {} };
-  const requireLocal = createRequire(filename);
-  runInThisContext(`(function(require, module, exports) { ${outputText}\n})`, { filename })(
-    (name) => Object.hasOwn(mocks, name) ? mocks[name] : requireLocal(name), mod, mod.exports,
-  );
-  return mod.exports;
-}
 
 const originalFetch = global.fetch;
 const originalNavigator = Object.getOwnPropertyDescriptor(global, 'navigator');

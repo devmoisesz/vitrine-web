@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { resolveUserRole } from "@/lib/session-role";
+import { setSessionCookies } from "@/lib/session-cookies";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -44,33 +45,6 @@ export async function PATCH(request: NextRequest) {
     access_token: data.access_token,
     user_role: userRole,
   });
-  response.cookies.set("accessToken", data.access_token, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 15 * 60,
-  });
-  if (data.refresh_token)
-    response.cookies.set("refreshToken", data.refresh_token, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60,
-    });
-  if (userRole) {
-    response.cookies.set("userRole", userRole, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60,
-    });
-  } else {
-    // Um papel antigo não pode continuar autorizando rotas protegidas quando
-    // ele não pôde ser confirmado nesta renovação de sessão.
-    response.cookies.delete("userRole");
-  }
+  setSessionCookies(response, data, userRole);
   return response;
 }
