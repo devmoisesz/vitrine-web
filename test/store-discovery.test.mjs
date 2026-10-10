@@ -28,15 +28,15 @@ test("discovery sends all filters to the API and retains its result count", asyn
   assert.equal(result.totalCount, 24);
 });
 test("cache varies by search, page and segments, but not by segment order", () => {
-  const { useStoresSearch } = load("src/features/store/hooks/use-stores-search.ts", {
+  const { useStoresSearch: getQueryOptions } = load("src/features/store/hooks/use-stores-search.ts", {
     "@tanstack/react-query": { useQuery: options => options },
     "../api/fetch-stores-search": { fetchStoresSearch: () => {} },
   });
   const base = { name: "Loja", page: 2, segments: ["fitness", "cosmeticos"] };
-  const original = useStoresSearch(base);
-  assert.deepEqual(original.queryKey, useStoresSearch({ ...base, segments: [...base.segments].reverse() }).queryKey);
+  const original = getQueryOptions(base);
+  assert.deepEqual(original.queryKey, getQueryOptions({ ...base, segments: [...base.segments].reverse() }).queryKey);
   for (const changed of [{ name: "Outra" }, { page: 1 }, { segments: ["fitness"] }, { segments: [] }]) {
-    assert.notDeepEqual(original.queryKey, useStoresSearch({ ...base, ...changed }).queryKey);
+    assert.notDeepEqual(original.queryKey, getQueryOptions({ ...base, ...changed }).queryKey);
   }
   assert.equal(original.placeholderData, undefined);
 });

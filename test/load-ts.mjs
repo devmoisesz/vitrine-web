@@ -8,7 +8,7 @@ export function load(relative, mocks = {}) {
   const source = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText;
-  const module = { exports: {} };
+  const loadedModule = { exports: {} };
   const localRequire = createRequire(filename);
   function requireModule(name) {
     if (Object.hasOwn(mocks, name)) return mocks[name];
@@ -20,6 +20,6 @@ export function load(relative, mocks = {}) {
     }
     return localRequire(name);
   }
-  runInThisContext(`(function(require,module,exports){${source}\n})`)(requireModule, module, module.exports);
-  return module.exports;
+  runInThisContext(`(function(require,module,exports){${source}\n})`)(requireModule, loadedModule, loadedModule.exports);
+  return loadedModule.exports;
 }
