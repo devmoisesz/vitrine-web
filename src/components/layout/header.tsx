@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
@@ -22,11 +22,14 @@ import { logout } from "@/features/auth/api/authenticate";
 import { useCartCount } from "@/features/cart/hooks/use-cart-count";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { isAdminRole, isCollaboratorRole } from "@/lib/roles";
+import { authHref } from "@/lib/login-destination";
 
-function HeaderContent({ storeSlug }: { storeSlug?: string }) {
+function HeaderContent({ storeSlug, exploration = false }: { storeSlug?: string; exploration?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const searchBasePath = storeSlug ? `/loja/${encodeURIComponent(storeSlug)}/produtos` : "/catalogo";
+  const pathname = usePathname();
+  const returnTo = pathname + (searchParams.size ? `?${searchParams}` : "");
+  const searchBasePath = storeSlug ? `/loja/${encodeURIComponent(storeSlug)}/produtos` : "/lojas";
   const searchLabel = storeSlug ? "Buscar produtos nesta loja" : "Buscar lojas";
   const {
     isAuthenticated,
@@ -127,15 +130,15 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
             href="/lojas"
             className="text-sm font-medium transition-opacity hover:opacity-70"
           >
-            Lojas
+            Explorar lojas
           </Link>
-          <Link
+          {!exploration && <><Link
             href="/sobre"
             className="text-sm font-medium transition-opacity hover:opacity-70"
           >
             Entenda a Vitrine Web
           </Link>
-          <Link href="/contato" className="text-sm font-medium transition-opacity hover:opacity-70">Contato</Link>
+          <Link href="/contato" className="text-sm font-medium transition-opacity hover:opacity-70">Contato</Link></>}
           {dashboard ? (
             <Link
               href={dashboard.href}
@@ -146,7 +149,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
           ) : null}
         </nav>
 
-        <Link href="/catalogo" className="shrink-0 transition-opacity hover:opacity-80 md:mx-auto">
+        <Link href="/lojas" className="shrink-0 transition-opacity hover:opacity-80 md:mx-auto">
           <Image
             src={whiteLogo}
             alt="Vitrine Web"
@@ -167,7 +170,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
               <dashboard.Icon className="size-5" />
             </Link>
           ) : null}
-          <div
+          {!exploration && <><div
             className="hidden items-center overflow-hidden border-b transition-all duration-200 md:flex"
             style={{
               width: isSearchOpen ? "14rem" : "0",
@@ -200,7 +203,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
             ) : (
               <Search className="size-5" />
             )}
-          </button>
+          </button></>}
 
           {isAuthLoading ? (
             <div
@@ -295,13 +298,13 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
           ) : (
             <>
               <Link
-                href="/cadastro"
+                href={authHref("/cadastro", returnTo)}
                 className="whitespace-nowrap rounded-full bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-sm"
               >
                 Criar Conta
               </Link>
               <Link
-                href="/login"
+                href={authHref("/login", returnTo)}
                 className="whitespace-nowrap rounded-full bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-opacity hover:opacity-80 sm:px-5 sm:py-2 sm:text-sm"
               >
                 Entrar
@@ -311,7 +314,7 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
         </div>
       </div>
 
-      {isSearchOpen && (
+      {!exploration && isSearchOpen && (
         <div className="border-t border-background/15 px-4 pb-3 pt-2 md:hidden">
           <input
             value={searchValue}
@@ -327,10 +330,10 @@ function HeaderContent({ storeSlug }: { storeSlug?: string }) {
   );
 }
 
-export function Header({ storeSlug }: { storeSlug?: string } = {}) {
+export function Header({ storeSlug, exploration }: { storeSlug?: string; exploration?: boolean } = {}) {
   return (
     <Suspense fallback={null}>
-      <HeaderContent key={storeSlug ?? "stores"} storeSlug={storeSlug} />
+      <HeaderContent key={`${storeSlug ?? "stores"}:${Boolean(exploration)}`} storeSlug={storeSlug} exploration={exploration} />
     </Suspense>
   );
 }

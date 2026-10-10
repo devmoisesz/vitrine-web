@@ -10,7 +10,7 @@ export function CommercialLayout({ children }: { children: React.ReactNode }) {
       <footer className="vw-footer">
         <Link className="vw-footer-brand" href="/">Vitrine Web</Link>
         <span>Uma plataforma para dar presença digital à sua loja.</span>
-        <nav aria-label="Menu do rodapé"><Link className="vw-nav" href="/contato">Contato</Link></nav>
+        <nav aria-label="Menu do rodapé"><Link className="vw-nav" href="/sobre">Entenda a Vitrine Web</Link><Link className="vw-nav" href="/lojas">Explorar lojas</Link><Link className="vw-nav" href="/contato">Contato</Link></nav>
       </footer>
     </div>
   );
