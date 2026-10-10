@@ -101,11 +101,11 @@ export function PainelSidebar() {
         </nav>
         <div className="mt-auto border-t border-gray-200 pt-4">
           <Link
-            href="/"
+            href="/lojas"
             onClick={() => setOpen(false)}
             className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-black"
           >
-            Ver catálogo
+            Explorar lojas
           </Link>
           <button
             onClick={handleLogout}

@@ -97,10 +97,10 @@ export default function CartPage() {
                 Explore o catálogo e adicione peças das suas lojas favoritas.
               </p>
               <Link
-                href="/"
+                href="/lojas"
                 className="mt-6 inline-block bg-foreground px-6 py-2.5 text-sm text-background"
               >
-                Ver catálogo
+                Explorar lojas
               </Link>
             </div>
           )}

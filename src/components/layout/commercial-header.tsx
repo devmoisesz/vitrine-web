@@ -7,7 +7,6 @@ export function CommercialHeader() {
     <Link href="/" className="vw-logo">Vitrine Web<span>PLATAFORMA PARA LOJISTAS</span></Link>
     <nav aria-label="Menu da plataforma">
       <Link className="vw-nav" href="/sobre">Para lojistas</Link>
-      <Link className="vw-nav" href="/catalogo">Acessar catálogo</Link>
       <Link className="vw-nav" href="/lojas">Explorar lojas</Link>
       <Link className="vw-nav" href="/contato">Contato</Link>
     </nav>

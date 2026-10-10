@@ -9,7 +9,7 @@ import { ParticipatingStores } from "@/components/landing/participating-stores";
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
-  if (params.name || params.categoryId || params.subcategoryId || params.page) redirect("/catalogo?origem=busca-global");
+  if (params.name || params.categoryId || params.subcategoryId || params.page) redirect("/lojas?origem=busca-global");
   return <HomeEntry><CommercialLayout>
     <CommercialHeader />
     <main id="conteudo">

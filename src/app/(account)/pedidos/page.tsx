@@ -101,10 +101,10 @@ function OrdersPageContent() {
               Você ainda não fez nenhum pedido.
             </p>
             <Link
-              href="/"
+              href="/lojas"
               className="mt-6 inline-block bg-foreground px-6 py-2.5 text-sm text-background"
             >
-              Ir para o catálogo
+              Explorar lojas
             </Link>
           </div>
         ) : (

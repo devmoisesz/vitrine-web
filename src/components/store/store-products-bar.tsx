@@ -14,8 +14,8 @@ export function StoreProductsBar({
     <div className="mb-8 border-b border-border pb-5">
       <div className="flex items-center gap-3">
         <Link
-          href="/catalogo"
-          aria-label="Voltar para o catálogo de lojas"
+          href="/lojas"
+          aria-label="Voltar para Explorar lojas"
           className="p-2 text-muted-foreground"
         >
           <ArrowLeft className="size-4" />
