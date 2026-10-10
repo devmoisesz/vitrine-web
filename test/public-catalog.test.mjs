@@ -46,3 +46,23 @@ test('public proxy preserves 404 and handles unavailable upstream', async () => 
   global.fetch = async () => { throw new Error('offline'); };
   assert.equal((await GET(request, context)).status, 503);
 });
+
+test('public proxy forwards store segments together with search and pagination', async () => {
+  global.fetch = async (url) => {
+    assert.equal(url.href, 'http://backend.test/stores?name=Loja&page=2&segments=fitness%2Ccosmeticos');
+    return Response.json([], { headers: { 'X-Total-Count': '24' } });
+  };
+  const response = await GET(new Request('http://frontend.test/api/catalog/stores?name=Loja&page=2&segments=fitness,cosmeticos'), { params: Promise.resolve({ path: ['stores'] }) });
+  assert.equal(response.headers.get('X-Total-Count'), '24');
+});
+
+test('segment selection is public but segment mutation paths are not proxied', async () => {
+  global.fetch = async (url) => {
+    assert.equal(url.href, 'http://backend.test/segments');
+    return Response.json([{ id: 'segment', name: 'Fitness', slug: 'fitness' }]);
+  };
+  const response = await GET(new Request('http://frontend.test/api/catalog/segments'), { params: Promise.resolve({ path: ['segments'] }) });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json())[0].name, 'Fitness');
+  assert.equal((await GET(request, { params: Promise.resolve({ path: ['segments', 'id'] }) })).status, 404);
+});

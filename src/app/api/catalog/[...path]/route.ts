@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
   const resource = path.join("/");
-  const allowed = /^(stores|categories|subcategories|store\/[a-zA-Z0-9-]+(?:\/products)?|products\/[a-zA-Z0-9-]+)$/;
+  const allowed = /^(stores|segments|categories|subcategories|store\/[a-zA-Z0-9-]+(?:\/products)?|products\/[a-zA-Z0-9-]+)$/;
   if (!allowed.test(resource)) return NextResponse.json({ message: "Página não encontrada." }, { status: 404 });
 
   const upstream = new URL(`${process.env.NEXT_PUBLIC_API_URL || "https://vitrine-web-api.onrender.com"}/${resource}`);
   const incoming = new URL(request.url);
-  for (const key of ["name", "page", "categoryId", "subcategoryId"]) {
+  for (const key of ["name", "page", "categoryId", "subcategoryId", ...(resource === "stores" ? ["segments"] : [])]) {
     const value = incoming.searchParams.get(key);
     if (value) upstream.searchParams.set(key, value);
   }
