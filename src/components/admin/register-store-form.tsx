@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegisterStore } from "@/features/admin/hooks/use-register-store";
+import { SegmentChecklist } from "@/components/store/segment-checklist";
 
 const registerStoreSchema = z.object({
   store_name: z.string().trim().min(1, "O nome da loja é obrigatório."),
@@ -46,6 +47,7 @@ export function RegisterStoreForm() {
   const mutation = useRegisterStore();
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [segmentIds, setSegmentIds] = useState<string[]>([]);
   const {
     register,
     handleSubmit,
@@ -68,6 +70,7 @@ export function RegisterStoreForm() {
       const data = registerStoreSchema.parse(values);
       await mutation.mutateAsync({
         ...data,
+        segmentIds,
         store_name: data.store_name.trim(),
         store_email: data.store_email.trim(),
         owner_email: data.owner_email.trim(),
@@ -141,6 +144,7 @@ export function RegisterStoreForm() {
           }}
         />
       </Field>
+      <SegmentChecklist value={segmentIds} onChange={setSegmentIds} disabled={mutation.isPending || success} />
       <Button
         type="submit"
         className="w-full sm:w-auto"

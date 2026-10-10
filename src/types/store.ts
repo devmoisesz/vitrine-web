@@ -1,3 +1,5 @@
+import type { Segment } from "./segment";
+
 export interface StoreAddress {
   id: string;
   label: string;
@@ -11,6 +13,7 @@ export interface StoreAddress {
 }
 
 export interface StoreProfile {
+  segments?: Segment[];
   name: string;
   logo_url: string | null;
   banner_url: string | null;

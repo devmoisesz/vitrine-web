@@ -5,6 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { StoreGeneralForm } from "@/components/painel/store-general-form";
+import { StoreSegmentsForm } from "@/components/painel/store-segments-form";
 import { PaymentMethodsChecklist } from "@/components/painel/payment-methods-checklist";
 import { DeliveryMethodsChecklist } from "@/components/painel/delivery-methods-checklist";
 import { StoreLogoManager } from "@/components/painel/store-logo-manager";
@@ -68,6 +69,7 @@ export default function LojaPage() {
         <h1 className="mt-2 font-serif text-4xl sm:text-5xl">Dados da loja</h1>
       </header>
       <StoreGeneralForm settings={data} slug={slug} accessToken={accessToken} />
+      <StoreSegmentsForm key={slug} segments={data.segments ?? []} slug={slug} accessToken={accessToken} />
       <div className="grid gap-6 lg:grid-cols-2">
         <PaymentMethodsChecklist
           values={data.payment_methods ?? []}

@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 
 export interface RegisterStoreInput {
+  segmentIds?: string[];
   store_name: string;
   store_email?: string | null;
   owner_email: string;
@@ -16,6 +17,7 @@ export function registerStore(input: RegisterStoreInput) {
       store_name: input.store_name,
       owner_email: input.owner_email,
       whatsapp: input.whatsapp,
+      segmentIds: input.segmentIds,
       ...(storeEmail ? { store_email: storeEmail.toLowerCase() } : {}),
     },
     authenticated: true,

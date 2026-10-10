@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api-client";
 import type { Order } from "@/types/orders";
 import type { Product } from "@/types/catalog";
 import type { StoreAddress } from "@/types/store";
+import type { Segment } from "@/types/segment";
 
 export interface StoreProfile {
   user_name: string;
@@ -12,6 +13,7 @@ export interface StoreProfile {
 }
 
 export interface StoreSettings {
+  segments?: Segment[];
   name: string;
   email?: string;
   logo_url: string | null;
@@ -24,6 +26,7 @@ export interface StoreSettings {
 }
 
 export interface UpdateStoreInput {
+  segmentIds?: string[];
   newName?: string;
   newEmail?: string;
   newDescription?: string;

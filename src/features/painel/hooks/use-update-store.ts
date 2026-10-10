@@ -3,5 +3,10 @@ import { updateStore, type UpdateStoreInput } from "../api/store";
 
 export function useUpdateStore(slug: string | undefined, accessToken: string | null) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn: (input: UpdateStoreInput) => updateStore(slug!, input, accessToken!), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["painel", "store-settings", slug] }) });
+  return useMutation({ mutationFn: (input: UpdateStoreInput) => updateStore(slug!, input, accessToken!), onSuccess: () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["painel", "store-settings", slug] }),
+    queryClient.invalidateQueries({ queryKey: ["stores-search"] }),
+    queryClient.invalidateQueries({ queryKey: ["store-profile", slug] }),
+    queryClient.invalidateQueries({ queryKey: ["admin", "stores"] }),
+  ]) });
 }
