@@ -3,7 +3,7 @@ import { fetchStoresSearch, type StoresSearchParams } from "../api/fetch-stores-
 
 export function useStoresSearch(params: StoresSearchParams) {
   return useQuery({
-    queryKey: ["stores-search", params.name, params.page],
+    queryKey: ["stores-search", params.name, params.page, [...new Set(params.segments ?? [])].sort()],
     queryFn: () => fetchStoresSearch(params),
   });
 }
