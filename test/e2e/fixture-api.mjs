@@ -63,7 +63,7 @@ const server = createServer(async (req, res) => {
   if (path.endsWith("/cart")) { calls.cart++; return send({}, 201); }
   if (path === "/segments") {
     if (req.method === "GET") return send(segments);
-    const entry = { ...body, id: randomUUID(), slug: body.slug || body.name.toLowerCase() };
+    const entry = { ...body, id: randomUUID(), slug: body.slug || body.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") };
     segments.push(entry); return send(entry, 201);
   }
   if (path.startsWith("/segments/")) {

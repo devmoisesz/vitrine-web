@@ -10,7 +10,7 @@ export function useAdminSegments() {
     client.invalidateQueries({ queryKey: ["painel", "store-settings"] }),
   ]);
   return {
-    save: useMutation({ mutationFn: ({ id, ...data }: { id?: string; name: string; slug?: string }) => saveSegment(data, id), onSuccess: invalidate }),
+    save: useMutation({ mutationFn: ({ id, ...data }: { id?: string; name: string }) => saveSegment(data, id), onSuccess: invalidate }),
     remove: useMutation({ mutationFn: deleteSegment, onSuccess: invalidate }),
   };
 }

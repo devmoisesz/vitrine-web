@@ -108,20 +108,27 @@ for (const register of [false, true]) test(`returns to product after ${register 
   expect(state.calls.accounts).toBe(register ? 1 : 0);
 });
 
-test("admin manages segments and store assignments while associated deletion is explained", async ({ page }) => {
+test("admin manages segments by name and store assignments while associated deletion is explained", async ({ page, request }) => {
   await page.goto("/login?redirect=/admin/segmentos");
   await login(page, "admin@example.test");
   await expect(page.getByRole("heading", { name: "Segmentos de lojas", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Excluir segmento Fitness", exact: true }).click();
   await page.getByRole("button", { name: "Excluir segmento", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "associado a lojas" })).toBeVisible();
+  await expect(page.getByLabel("Slug", { exact: true })).toHaveCount(0);
   await page.getByLabel("Nome", { exact: true }).fill("Calçados");
-  await page.getByLabel("Slug", { exact: true }).fill("calcados");
+  const creation = page.waitForRequest(req => req.url() === "http://127.0.0.1:4101/segments" && req.method() === "POST");
   await page.getByRole("button", { name: "Cadastrar segmento", exact: true }).click();
+  expect((await creation).postDataJSON()).toEqual({ name: "Calçados" });
   await expect(page.getByRole("button", { name: "Editar segmento Calçados" })).toBeVisible();
+  const created = (await (await request.get("http://127.0.0.1:4101/segments")).json()).find((segment: { name: string }) => segment.name === "Calçados");
+  expect(created.slug).toBe("calcados");
   await page.getByRole("button", { name: "Editar segmento Calçados" }).click();
+  await expect(page.getByLabel("Slug", { exact: true })).toHaveCount(0);
   await page.getByLabel("Nome", { exact: true }).fill("Sapatos");
+  const edition = page.waitForRequest(req => req.url() === `http://127.0.0.1:4101/segments/${created.id}` && req.method() === "PUT");
   await page.getByRole("button", { name: "Salvar alterações" }).click();
+  expect((await edition).postDataJSON()).toEqual({ name: "Sapatos" });
   await expect(page.getByRole("button", { name: "Editar segmento Sapatos" })).toBeVisible();
   await page.goto("/admin/lojas/loja-b/editar");
   await page.getByRole("checkbox", { name: "Fitness", exact: true }).check();

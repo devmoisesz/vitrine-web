@@ -9,6 +9,7 @@
 - Filtro acessível com múltipla seleção, aplicação, limpeza, Escape, contenção e retorno do foco. A busca continua no conteúdo.
 - Estado compartilhável: `/lojas?name=Loja&segments=fitness,cosmeticos&page=2`. Nome e segmentos se combinam no servidor, com OU entre segmentos. A API devolve contagem e páginas de 20; o navegador não filtra apenas a página atual. Alterações de busca/filtro retornam à página 1. Chips permitem remover filtros.
 - Segmentos são geridos em `/admin/segmentos`; associação no cadastro, na edição administrativa de segmentos da loja e em `/painel/loja`, respeitando permissões da API. Nenhum segmento ou loja é criado automaticamente.
+- O formulário administrativo de segmentos pede apenas o nome. A API gera o slug automaticamente no cadastro; a edição do nome preserva o identificador existente e os filtros compartilhados.
 - As rotas `/loja/:slug`, `/loja/:slug/produtos` e `/produto/:id` continuam públicas; busca e produtos permanecem dentro da loja.
 
 ## Retorno após autenticação
