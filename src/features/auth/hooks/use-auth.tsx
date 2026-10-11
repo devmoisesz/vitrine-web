@@ -17,7 +17,9 @@ import {
   subscribeToSessionExpired,
   refreshSession,
   getAccessTokenExpiry,
+  ApiError,
 } from "@/lib/api-client";
+import { SessionRetry } from "@/components/auth/session-retry";
 
 export interface AuthContextValue {
   user: { id: string; name: string; email: string } | null;
@@ -48,6 +50,8 @@ const REFRESH_MARGIN_MS = 60 * 1000;
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [restoreError, setRestoreError] = useState<ApiError | null>(null);
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const accessToken = useSyncExternalStore(
     subscribeToAccessToken,
@@ -81,22 +85,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const now = Date.now();
     const delay = Math.max(0, expiry * 1000 - now - REFRESH_MARGIN_MS);
+    let cancelled = false;
 
-    refreshTimerRef.current = setTimeout(async () => {
+    const renew = async () => {
       try {
         await refresh();
-      } catch {
-        // Falha no refresh proativo — o fluxo de 401/evento de sessão expirada
-        // cuidará do estado. O setAccessToken(null) já foi feito em refreshSession.
+      } catch (error) {
+        const retryAt = error instanceof ApiError ? error.retryAt : undefined;
+        if (!cancelled) refreshTimerRef.current = setTimeout(renew, Math.max(5000, (retryAt ?? 0) - Date.now()));
       } finally {
         // Se ainda houver token (sessão renovada), agendar o próximo ciclo.
         if (getAccessToken()) {
           setSessionExpired(false);
         }
       }
-    }, delay);
+    };
+    refreshTimerRef.current = setTimeout(renew, delay);
 
     return () => {
+      cancelled = true;
       if (refreshTimerRef.current) {
         clearTimeout(refreshTimerRef.current);
         refreshTimerRef.current = null;
@@ -113,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshIfNeeded = () => {
       const expiry = getAccessTokenExpiry(getAccessToken());
       if (!expiry || expiry * 1000 - Date.now() <= REFRESH_MARGIN_MS) {
-        void refresh();
+        void refresh().catch(() => { /* The scheduled retry preserves the session. */ });
       }
     };
 
@@ -148,13 +155,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function tryRestoreSession() {
       try {
+        setRestoreError(null);
         const success = await refreshSession();
         if (cancelled) return;
         if (success) {
           console.log("[Auth] Sessão restaurada via refresh token");
         }
-      } catch {
-        // Sessão não pôde ser restaurada — sem refresh token no cookie
+      } catch (error) {
+        if (!cancelled) setRestoreError(error instanceof ApiError ? error : new ApiError("Servidor indisponível", 503));
       } finally {
         if (!cancelled) {
           setIsInitialLoading(false);
@@ -167,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [restoreAttempt]);
 
   return (
     <AuthContext.Provider
@@ -181,7 +189,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionExpired,
       }}
     >
-      {children}
+      {restoreError && !accessToken ? <SessionRetry retryAt={restoreError.retryAt} onRetry={() => {
+        setIsInitialLoading(true);
+        setRestoreAttempt((value) => value + 1);
+      }} /> : children}
     </AuthContext.Provider>
   );
 }

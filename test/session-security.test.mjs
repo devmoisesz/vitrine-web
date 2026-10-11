@@ -126,5 +126,5 @@ test('panel proxy still authorizes against the current backend role', async () =
   const response = await load('src/proxy.ts').proxy(new NextRequest('http://frontend.test/admin', {
     headers: { Cookie: 'refreshToken=refresh; accessToken=access; userRole=ADMIN' },
   }));
-  assert.equal(response.headers.get('location'), 'http://frontend.test/');
+  assert.equal(response.headers.get('location'), 'http://frontend.test/lojas');
 });

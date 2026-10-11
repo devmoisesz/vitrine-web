@@ -12,10 +12,16 @@ export async function PATCH(request: NextRequest) {
       { message: "Sessão expirada. Faça login novamente." },
       { status: 401 },
     );
-  const upstream = await fetch(`${apiUrl}/refresh`, {
-    method: "PATCH",
-    headers: { Cookie: `refreshToken=${encodeURIComponent(refreshToken)}` },
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${apiUrl}/refresh`, {
+      method: "PATCH",
+      headers: { Cookie: `refreshToken=${encodeURIComponent(refreshToken)}` },
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    return NextResponse.json({ message: "Servidor temporariamente indisponível." }, { status: 503 });
+  }
   const body = await upstream.text();
   if (!upstream.ok) {
     const response = new NextResponse(body, {
@@ -25,6 +31,8 @@ export async function PATCH(request: NextRequest) {
           upstream.headers.get("Content-Type") ?? "application/json",
       },
     });
+    const retryAfter = upstream.headers.get("Retry-After");
+    if (retryAfter) response.headers.set("Retry-After", retryAfter);
     if (upstream.status === 401) {
       response.cookies.delete("refreshToken");
       response.cookies.delete("accessToken");

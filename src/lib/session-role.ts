@@ -32,6 +32,8 @@ export async function fetchEffectiveRole(
     const res = await fetch(`${apiUrl}/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { user_role?: string };

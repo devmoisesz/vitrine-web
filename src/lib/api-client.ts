@@ -10,6 +10,8 @@ const accessTokenListeners = new Set<() => void>();
 
 export function setAccessToken(token: string | null, role?: string | null) {
   globalAccessToken = token;
+  if (token) refreshFailure = null;
+  if (!token) rateLimits.clear();
   globalUserRole = token ? (role ?? globalUserRole) : null;
   accessTokenListeners.forEach((listener) => listener());
 }
@@ -70,6 +72,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly retryAt?: number,
   ) {
     super(message);
     this.name = "ApiError";
@@ -84,78 +87,50 @@ export interface ApiRequestOptions extends Omit<RequestInit, "body"> {
 
 // ─── Refresh token logic ────────────────────────────────────────────────────
 
-let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
-let failedQueue: Array<{
-  resolve: (value: boolean) => void;
-  reject: (reason: unknown) => void;
-}> = [];
+let refreshFailure: ApiError | null = null;
+const rateLimits = new Map<string, ApiError>();
 
-function processQueue(error: unknown) {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(true);
-    }
-  });
-  failedQueue = [];
+export function retryAtFromResponse(response: Response): number | undefined {
+  if (response.status !== 429) return undefined;
+  const value = response.headers.get("Retry-After");
+  const milliseconds = value && /^\d+(\.\d+)?$/.test(value.trim())
+    ? Number(value) * 1000 : value ? Date.parse(value) - Date.now() : NaN;
+  return Date.now() + (Number.isFinite(milliseconds) ? Math.max(1000, milliseconds) : 60_000);
 }
 
-/**
- * Tenta renovar o access_token chamando PATCH /refresh.
- * O refresh_token é lido pelo backend automaticamente do cookie httpOnly.
- */
+/** Only a confirmed 401 expires the session. Temporary failures preserve it. */
 export async function refreshSession(): Promise<boolean> {
-  if (isRefreshing && refreshPromise) {
-    // Já existe uma requisição de refresh em andamento — aguarda
-    return refreshPromise;
-  }
-
-  isRefreshing = true;
-  // Se já havia um token ativo e o refresh falhar, significa que a sessão
-  // realmente expirou (diferente do load inicial, em que o usuário é visitante).
+  if (refreshPromise) return refreshPromise;
+  if (refreshFailure?.retryAt && refreshFailure.retryAt > Date.now()) throw refreshFailure;
   const hadActiveSession = Boolean(globalAccessToken);
-
   refreshPromise = withSessionLock(async () => {
     try {
       const response = await fetch("/api/session/refresh", {
-        method: "PATCH",
-        credentials: "include",
+        method: "PATCH", credentials: "include",
         headers: { "Content-Type": "application/json" },
+        // The server may need both token rotation and a profile lookup.
+        signal: AbortSignal.timeout(30_000),
       });
-
-      if (!response.ok) {
-        throw new ApiError(
-          "Sessão expirada. Faça login novamente.",
-          response.status,
-        );
+      if (response.status === 401) {
+        refreshFailure = null;
+        setAccessToken(null);
+        if (hadActiveSession) emitSessionExpired();
+        return false;
       }
-
-      const data = (await response.json()) as {
-        access_token: string;
-        user_role?: string | null;
-      };
+      if (!response.ok) throw new ApiError("Não foi possível verificar sua sessão. Tente novamente em instantes.", response.status, retryAtFromResponse(response));
+      const data = await response.json() as { access_token: string; user_role?: string | null };
+      refreshFailure = null;
       setAccessToken(data.access_token, data.user_role);
-      processQueue(null);
       return true;
     } catch (error) {
-      setAccessToken(null);
-      processQueue(error);
-      if (hadActiveSession) {
-        emitSessionExpired();
-      }
-      return false;
-    } finally {
-      isRefreshing = false;
-      refreshPromise = null;
-    }
+      const failure = error instanceof ApiError ? error : new ApiError("Não foi possível conectar ao servidor.", 503);
+      refreshFailure = new ApiError(failure.message, failure.status, failure.retryAt ?? Date.now() + 5_000);
+      throw refreshFailure;
+    } finally { refreshPromise = null; }
   });
-
   return refreshPromise;
 }
-
-// ─── apiClient with auto-refresh on 401 ─────────────────────────────────────
 
 export async function apiClient<T = unknown>(
   path: string,
@@ -180,8 +155,14 @@ export async function apiClient<T = unknown>(
     ? JSON.stringify(body)
     : (body as BodyInit | undefined);
 
-  let response = await fetch(`${API_URL}${path}`, {
+  const limitKey = JSON.stringify([requestOptions.method ?? "GET", path, token]);
+  const limited = rateLimits.get(limitKey);
+  if (limited?.retryAt && limited.retryAt > Date.now()) throw limited;
+  rateLimits.delete(limitKey);
+
+  let response = await fetch(API_URL + path, {
     ...requestOptions,
+    signal: requestOptions.signal ?? AbortSignal.timeout(20_000),
     // A API mantém o refresh token em um cookie httpOnly. Como ela pode estar
     // em outro domínio, é necessário incluí-lo também no login para que o
     // navegador aceite o Set-Cookie da resposta.
@@ -194,46 +175,19 @@ export async function apiClient<T = unknown>(
     },
   });
 
-  // ── Auto-refresh on 401 ─────────────────────────────────────────────
-  if (
-    response.status === 401 &&
-    (authenticated || explicitToken || globalAccessToken)
-  ) {
-    // Se já estávamos tentando refresh, aguarda na fila
-    if (isRefreshing) {
-      await new Promise<boolean>((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      });
-      // Refaz a requisição com o novo token
-      const newToken = globalAccessToken;
-      response = await fetch(`${API_URL}${path}`, {
+  if (response.status === 401 && (authenticated || explicitToken || globalAccessToken)) {
+    if (await refreshSession()) {
+      response = await fetch(API_URL + path, {
         ...requestOptions,
+        signal: requestOptions.signal ?? AbortSignal.timeout(20_000),
         credentials: requestOptions.credentials ?? "include",
         body: bodyPayload,
         headers: {
           ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
-          ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
+          ...(globalAccessToken ? { Authorization: "Bearer " + globalAccessToken } : {}),
           ...headers,
         },
       });
-    } else {
-      // Inicia o refresh
-      const refreshed = await refreshSession();
-      if (refreshed) {
-        // Refaz a requisição com o novo token
-        response = await fetch(`${API_URL}${path}`, {
-          ...requestOptions,
-          credentials: requestOptions.credentials ?? "include",
-          body: bodyPayload,
-          headers: {
-            ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
-            ...(globalAccessToken
-              ? { Authorization: `Bearer ${globalAccessToken}` }
-              : {}),
-            ...headers,
-          },
-        });
-      }
     }
   }
 
@@ -249,10 +203,16 @@ export async function apiClient<T = unknown>(
 
     // Traduz a mensagem bruta da API para pt-BR amigável ao usuário final,
     // sem expor detalhes internos da aplicação.
-    throw new ApiError(
+    const error = new ApiError(
       translateApiError(rawMessage, response.status),
       response.status,
+      retryAtFromResponse(response),
     );
+    if (response.status === 429) {
+      if (rateLimits.size >= 100) rateLimits.clear();
+      rateLimits.set(limitKey, error);
+    }
+    throw error;
   }
 
   const responseText = await response.text();

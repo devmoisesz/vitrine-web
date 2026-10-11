@@ -18,6 +18,15 @@ export async function proxy(request: NextRequest) {
 
   if (!isAdminRoute && !isPainelRoute) return NextResponse.next();
 
+  const unavailable = (retryAfter = "5") => {
+    const destination = new URL("/session/unavailable", request.url);
+    destination.searchParams.set("returnTo", pathname + request.nextUrl.search);
+    const seconds = /^\d+$/.test(retryAfter) ? Number(retryAfter)
+      : Math.ceil((Date.parse(retryAfter) - Date.now()) / 1000);
+    destination.searchParams.set("retryAfter", String(Number.isFinite(seconds) ? Math.max(1, seconds) : 60));
+    return NextResponse.redirect(destination);
+  };
+
   const refreshToken = request.cookies.get("refreshToken")?.value;
   const accessToken = request.cookies.get("accessToken")?.value;
 
@@ -33,6 +42,7 @@ export async function proxy(request: NextRequest) {
       ? await fetch(`${apiUrl}/me`, {
           headers: { Authorization: `Bearer ${accessToken}` },
           cache: "no-store",
+          signal: AbortSignal.timeout(10_000),
         })
       : null;
 
@@ -42,7 +52,10 @@ export async function proxy(request: NextRequest) {
       restoreUrl.searchParams.set("returnTo", pathname + request.nextUrl.search);
       return NextResponse.redirect(restoreUrl);
     }
-    if (!profileResponse.ok) return NextResponse.redirect(new URL("/", request.url));
+    if (profileResponse.status === 429 || profileResponse.status >= 500) {
+      return unavailable(profileResponse.headers.get("Retry-After") ?? (profileResponse.status === 429 ? "60" : "5"));
+    }
+    if (!profileResponse.ok) return NextResponse.redirect(new URL("/lojas", request.url));
 
     const profile = (await profileResponse.json()) as { user_role?: string };
     const userRole = normalizeRole(profile.user_role);
@@ -52,13 +65,13 @@ export async function proxy(request: NextRequest) {
       response =
         userRole === "admin"
           ? NextResponse.next()
-          : NextResponse.redirect(new URL("/", request.url));
+          : NextResponse.redirect(new URL("/lojas", request.url));
     } else if (userRole === "funcionario" || userRole === "proprietario") {
       response = NextResponse.next();
     } else if (userRole === "admin") {
       response = NextResponse.redirect(new URL("/admin", request.url));
     } else {
-      response = NextResponse.redirect(new URL("/", request.url));
+      response = NextResponse.redirect(new URL("/lojas", request.url));
     }
 
     if (userRole) {
@@ -75,7 +88,7 @@ export async function proxy(request: NextRequest) {
 
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/", request.url));
+    return unavailable();
   }
 }
 
