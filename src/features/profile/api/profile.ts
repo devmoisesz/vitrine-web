@@ -5,6 +5,8 @@ export interface Profile {
   user_name: string;
   user_email: string;
   user_role: string;
+  store_name?: string;
+  store_slug?: string;
   provider: "LOCAL" | "GOOGLE";
   user_address: Address[];
 }

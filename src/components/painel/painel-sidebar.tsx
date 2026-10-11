@@ -59,7 +59,7 @@ export function PainelSidebar() {
         className={`fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white p-5 transition-transform lg:translate-x-0 ${open ? "translate-x-0" : ""}`}
       >
         <div className="flex items-start justify-between border-b border-gray-200 pb-6">
-          <Link
+          <Link prefetch={false}
             href="/painel"
             className="font-serif text-2xl leading-tight"
             onClick={() => setOpen(false)}
@@ -88,7 +88,7 @@ export function PainelSidebar() {
                 ? pathname === link.href
                 : pathname.startsWith(link.href);
               return (
-                <Link
+                <Link prefetch={false}
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
@@ -100,7 +100,7 @@ export function PainelSidebar() {
             })}
         </nav>
         <div className="mt-auto border-t border-gray-200 pt-4">
-          <Link
+          <Link prefetch={false}
             href="/lojas"
             onClick={() => setOpen(false)}
             className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-black"

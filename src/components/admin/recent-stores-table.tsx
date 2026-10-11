@@ -19,7 +19,7 @@ export function RecentStoresTable() {
     <section className="rounded-xl border border-gray-200 bg-white">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
         <h2 className="font-serif text-2xl">Últimas lojas cadastradas</h2>
-        <Link
+        <Link prefetch={false}
           href="/admin/lojas"
           className="text-sm font-medium underline underline-offset-4"
         >

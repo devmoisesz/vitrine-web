@@ -1,10 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getStoreProfile } from "../api/store";
+import { useProfile } from "@/features/profile/hooks/use-profile";
 
 export function useStoreProfile(accessToken: string | null) {
-  return useQuery({
-    queryKey: ["painel", "profile", accessToken],
-    queryFn: () => getStoreProfile(accessToken!),
-    enabled: Boolean(accessToken),
-  });
+  return useProfile(accessToken);
 }

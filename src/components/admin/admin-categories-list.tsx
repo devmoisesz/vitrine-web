@@ -43,5 +43,5 @@ function EditName({ value, onChange, onSave, onCancel, saving, compact = false }
 }
 
 export function CategoryActions() {
-  return <div className="flex flex-wrap gap-3"><Link href="/admin/categorias/nova" className="inline-flex h-11 items-center justify-center rounded-lg border border-black bg-black px-4 text-sm font-medium text-white hover:bg-gray-800">+ Cadastrar categoria</Link><Link href="/admin/categorias/subcategorias/nova" className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-black hover:bg-gray-50">+ Cadastrar subcategoria</Link></div>;
+  return <div className="flex flex-wrap gap-3"><Link prefetch={false} href="/admin/categorias/nova" className="inline-flex h-11 items-center justify-center rounded-lg border border-black bg-black px-4 text-sm font-medium text-white hover:bg-gray-800">+ Cadastrar categoria</Link><Link prefetch={false} href="/admin/categorias/subcategorias/nova" className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-black hover:bg-gray-50">+ Cadastrar subcategoria</Link></div>;
 }

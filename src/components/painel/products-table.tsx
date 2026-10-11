@@ -101,7 +101,7 @@ export function ProductsTable({
         <p className="text-sm text-gray-500">
           Nenhum produto cadastrado ainda.
         </p>
-        <Link href="/painel/produtos/novo">
+        <Link prefetch={false} href="/painel/produtos/novo">
           <Button variant="primary" size="sm">
             Cadastrar produto
           </Button>
@@ -191,7 +191,7 @@ export function ProductsTable({
                           onClick={() => setMenuOpen(null)}
                         />
                         <div className="absolute right-5 top-12 z-20 w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                          <Link
+                          <Link prefetch={false}
                             href={`/painel/produtos/${product.id}/editar`}
                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                             onClick={() => setMenuOpen(null)}

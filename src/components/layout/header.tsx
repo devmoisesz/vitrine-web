@@ -140,7 +140,7 @@ function HeaderContent({ storeSlug, exploration = false }: { storeSlug?: string;
           </Link>
           <Link href="/contato" className="text-sm font-medium transition-opacity hover:opacity-70">Contato</Link></>}
           {dashboard ? (
-            <Link
+            <Link prefetch={false}
               href={dashboard.href}
               className="hidden text-sm font-medium transition-opacity hover:opacity-70 md:inline"
             >
@@ -162,7 +162,7 @@ function HeaderContent({ storeSlug, exploration = false }: { storeSlug?: string;
 
         <div className="ml-auto flex items-center gap-1.5 md:absolute md:right-8 md:gap-3">
           {dashboard ? (
-            <Link
+            <Link prefetch={false}
               href={dashboard.href}
               aria-label={dashboard.label}
               className="flex size-10 items-center justify-center rounded-full bg-background/10 transition-colors hover:bg-background/20 md:hidden"

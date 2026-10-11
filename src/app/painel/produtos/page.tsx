@@ -60,7 +60,7 @@ function PainelProdutosPageContent() {
           </p>
           <h1 className="mt-2 font-serif text-4xl sm:text-5xl">Produtos</h1>
         </div>
-        <Link href="/painel/produtos/novo">
+        <Link prefetch={false} href="/painel/produtos/novo">
           <Button>+ Cadastrar produto</Button>
         </Link>
       </div>
