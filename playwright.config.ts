@@ -17,6 +17,6 @@ export default defineConfig({
     { command: "node test/e2e/fixture-api.mjs", url: "http://127.0.0.1:4101/segments", reuseExistingServer: false },
     { command: "node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3100",
       url: "http://127.0.0.1:3100/api/catalog/stores", timeout: 120000, reuseExistingServer: false,
-      env: { NEXT_PUBLIC_API_URL: "http://127.0.0.1:4101", NEXT_PUBLIC_GOOGLE_CLIENT_ID: "" } },
+      env: { NEXT_PUBLIC_API_URL: "http://127.0.0.1:4101", NEXT_PUBLIC_GOOGLE_CLIENT_ID: "fixture-google-client" } },
   ],
 });

@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 
 const base = "http://127.0.0.1:4101";
-let segments, stores, calls, unavailable;
+let segments, stores, calls, unavailable, profileStatus, refreshStatus;
 function reset() {
   segments = [
     { id: "00000000-0000-4000-8000-000000000001", name: "Fitness", slug: "fitness" },
@@ -14,11 +14,13 @@ function reset() {
     { id: "store-a", name: "Loja de teste A", slug: "loja-a", description: "Descrição completa da loja, com atendimento próprio e catálogo independente. ".repeat(9) + "FINAL DA DESCRIÇÃO.", logo_image_url: base + "/logo.svg", bannerUrl: null, segments: [...segments] },
     { id: "store-b", name: "Loja de teste B", slug: "loja-b", description: "Loja sem logo e sem segmentos.", logo_image_url: null, bannerUrl: null, segments: [] },
   ];
-  calls = { cart: 0, accounts: 0 };
+  calls = { cart: 0, accounts: 0, profile: 0, refresh: 0 };
+  profileStatus = 200;
+  refreshStatus = 200;
   unavailable = false;
 }
 reset();
-const token = role => ["e30", Buffer.from(JSON.stringify({ role, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url"), "fixture"].join(".");
+const token = role => ["e30", Buffer.from(JSON.stringify({ role, sub: role, sid: `session-${role}`, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url"), "fixture"].join(".");
 const roleOf = req => {
   try { return JSON.parse(Buffer.from((req.headers.authorization ?? "").split(".")[1], "base64url").toString()).role; } catch { return "Cliente"; }
 };
@@ -34,7 +36,7 @@ const server = createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
+  res.setHeader("Access-Control-Expose-Headers", "X-Total-Count, Retry-After");
   const url = new URL(req.url, base);
   const send = (data, status = 200) => { res.statusCode = status; res.setHeader("Content-Type", "application/json"); res.end(status === 204 ? undefined : JSON.stringify(data)); };
   if (req.method === "OPTIONS") return send({}, 204);
@@ -45,20 +47,31 @@ const server = createServer(async (req, res) => {
   const path = url.pathname;
   if (path === "/__reset") { reset(); return send({}); }
   if (path === "/__state") return send({ calls });
+  if (path === "/__session-status") {
+    profileStatus = body.profile ?? profileStatus;
+    refreshStatus = body.refresh ?? refreshStatus;
+    return send({});
+  }
   if (path === "/__unavailable") { unavailable = Boolean(body.value); return send({}); }
   if (path === "/logo.svg") { res.setHeader("Content-Type", "image/svg+xml"); return res.end('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100"><rect width="300" height="100" fill="#222"/><text x="150" y="64" font-size="38" text-anchor="middle" fill="white">LOJA A</text></svg>'); }
   if (path === "/authenticate" || path === "/authenticate/google") {
-    const role = body.email?.startsWith("admin") ? "Admin" : body.email?.startsWith("owner") ? "Proprietário" : "Cliente";
+    const role = body.email?.startsWith("admin") || body.id_token === "fixture-admin-google" ? "Admin" : body.email?.startsWith("owner") ? "Proprietário" : "Cliente";
     return send({ access_token: token(role), refresh_token: token(role) });
   }
   if (path === "/refresh") {
+    calls.refresh++;
+    if (refreshStatus !== 200) { res.setHeader("Retry-After", "1"); return send({}, refreshStatus); }
     const cookie = req.headers.cookie ?? "";
     const refresh = cookie.split(";").map(v => v.trim()).find(v => v.startsWith("refreshToken="))?.slice(13);
     return refresh ? send({ access_token: refresh, refresh_token: refresh }) : send({}, 401);
   }
   if (path === "/logout") return send({}, 204);
   if (path === "/accounts") { calls.accounts++; return send({}, 201); }
-  if (path === "/me") return send({ user_name: "Cliente de teste", user_email: "customer@example.test", user_role: roleOf(req), store_slug: "loja-a", store_name: "Loja de teste A" });
+  if (path === "/me") {
+    calls.profile++;
+    if (profileStatus !== 200) { res.setHeader("Retry-After", "1"); return send({}, profileStatus); }
+    return send({ user_name: "Cliente de teste", user_email: "customer@example.test", user_role: roleOf(req), store_slug: "loja-a", store_name: "Loja de teste A" });
+  }
   if (path === "/carts") return send([]);
   if (path.endsWith("/cart")) { calls.cart++; return send({}, 201); }
   if (path === "/segments") {
