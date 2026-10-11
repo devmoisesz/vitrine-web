@@ -12,7 +12,7 @@ export function setAccessToken(token: string | null, role?: string | null) {
   globalAccessToken = token;
   if (token) refreshFailure = null;
   if (!token) rateLimits.clear();
-  globalUserRole = token ? (role ?? globalUserRole) : null;
+  globalUserRole = token ? (role === undefined ? globalUserRole : role) : null;
   accessTokenListeners.forEach((listener) => listener());
 }
 

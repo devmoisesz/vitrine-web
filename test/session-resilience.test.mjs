@@ -10,6 +10,14 @@ const request = () => new nextServer.NextRequest('http://frontend.test/admin/loj
   headers: { Cookie: 'refreshToken=refresh; accessToken=access; userRole=admin' },
 });
 
+test('a new session with unresolved role does not inherit the previous account role', () => {
+  const api = load('src/lib/api-client.ts');
+  api.setAccessToken('old-admin', 'admin');
+  api.setAccessToken('new-user', null);
+  assert.equal(api.getAccessToken(), 'new-user');
+  assert.equal(api.getUserRole(), null);
+});
+
 for (const status of [429, 503, 'network']) {
   test(`refresh ${status} preserves identity and throttles repeat attempts`, async () => {
     const api = load('src/lib/api-client.ts');
