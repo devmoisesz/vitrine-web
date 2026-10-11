@@ -91,9 +91,11 @@ export default function LoginPage() {
   const reduceMotion = useReducedMotion();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [googleReady, setGoogleReady] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState<"loading" | "ready" | "error">("loading");
   const [googleLoading, setGoogleLoading] = useState(false);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const googleReady = googleStatus === "ready";
+  const googlePreparing = Boolean(googleClientId) && googleStatus === "loading";
   const {
     register,
     handleSubmit,
@@ -148,7 +150,7 @@ export default function LoginPage() {
       // Mantemos o fluxo One Tap compatível até que o navegador conclua o FedCM.
       use_fedcm_for_prompt: false,
     });
-    setGoogleReady(true);
+    setGoogleStatus("ready");
   }
   function signInWithGoogle() {
     setFormError(null);
@@ -156,12 +158,7 @@ export default function LoginPage() {
       setFormError("O login com Google ainda não foi configurado.");
       return;
     }
-    if (!googleReady || !window.google) {
-      setFormError(
-        "O Google está sendo preparado. Atualize a página e tente novamente em instantes.",
-      );
-      return;
-    }
+    if (!googleReady || !window.google) return;
     window.google.accounts.id.prompt();
   }
 
@@ -171,7 +168,12 @@ export default function LoginPage() {
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
-          onLoad={initializeGoogle}
+          // onReady also runs when returning to this page with the script cached.
+          onReady={initializeGoogle}
+          onError={() => {
+            setGoogleStatus("error");
+            setFormError("Não foi possível carregar o Google. Você pode entrar com e-mail e senha.");
+          }}
         />
       ) : null}
       <motion.section
@@ -374,10 +376,11 @@ export default function LoginPage() {
               className="w-full"
               variant="secondary"
               size="lg"
-              disabled={isSubmitting || googleLoading}
+              disabled={isSubmitting || googleLoading || !googleReady}
+              aria-busy={googlePreparing || googleLoading}
               onClick={signInWithGoogle}
             >
-              {googleLoading ? (
+              {googleLoading || googlePreparing ? (
                 <motion.span
                   className="inline-flex"
                   animate={reduceMotion ? undefined : { rotate: 360 }}
@@ -392,7 +395,7 @@ export default function LoginPage() {
               ) : (
                 <GoogleMark />
               )}
-              Continuar com Google
+              {googlePreparing ? "Preparando Google…" : googleReady ? "Continuar com Google" : "Google indisponível"}
             </Button>
           </motion.div>
           <motion.div variants={staggerItem}>

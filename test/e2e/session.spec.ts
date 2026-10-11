@@ -1,15 +1,60 @@
 import { test, expect } from "@playwright/test";
 
 const api = "http://127.0.0.1:4101";
+const googleScript = `let configuration; window.google = { accounts: { id: {
+  initialize: value => { configuration = value; },
+  prompt: () => configuration.callback({ credential: 'fixture-admin-google' })
+} } };`;
 test.beforeEach(async ({ page, request }) => {
   await request.post(`${api}/__reset`);
   await page.route("https://accounts.google.com/gsi/client", route => route.fulfill({
     contentType: "application/javascript",
-    body: `let configuration; window.google = { accounts: { id: {
-      initialize: value => { configuration = value; },
-      prompt: () => configuration.callback({ credential: 'fixture-admin-google' })
-    } } };`,
+    body: googleScript,
   }));
+});
+
+test("Google becomes clickable after a delayed script without reloading the page", async ({ page }) => {
+  let release!: () => void;
+  const ready = new Promise<void>(resolve => { release = resolve; });
+  await page.route("https://accounts.google.com/gsi/client", async route => {
+    await ready;
+    await route.fulfill({ contentType: "application/javascript", body: googleScript });
+  });
+  let documents = 0;
+  page.on("request", req => { if (req.isNavigationRequest() && req.frame() === page.mainFrame()) documents++; });
+  await page.goto("/login?redirect=/admin/segmentos", { waitUntil: "domcontentloaded" });
+  try {
+    await expect(page.getByRole("button", { name: "Preparando Google…" })).toBeDisabled();
+  } finally { release(); }
+  const google = page.getByRole("button", { name: "Continuar com Google" });
+  await expect(google).toBeEnabled();
+  expect(documents).toBe(1);
+  await google.click();
+  await expect(page.getByRole("heading", { name: "Segmentos de lojas", exact: true })).toBeVisible();
+});
+
+test("Google initializes again when returning to login with the script cached", async ({ page }) => {
+  let scriptRequests = 0;
+  page.on("request", req => { if (req.url() === "https://accounts.google.com/gsi/client") scriptRequests++; });
+  await page.goto("/login?redirect=/admin/segmentos");
+  await expect(page.getByRole("button", { name: "Continuar com Google" })).toBeEnabled();
+  await page.getByRole("link", { name: "Criar conta", exact: true }).click();
+  await expect(page).toHaveURL(/\/cadastro\?/);
+  await page.getByRole("link", { name: "Entrar", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?/);
+  const google = page.getByRole("button", { name: "Continuar com Google" });
+  await expect(google).toBeEnabled();
+  expect(scriptRequests).toBe(1);
+  await google.click();
+  await expect(page.getByRole("heading", { name: "Segmentos de lojas", exact: true })).toBeVisible();
+});
+
+test("Google script failure is explained while password login remains available", async ({ page }) => {
+  await page.route("https://accounts.google.com/gsi/client", route => route.abort());
+  await page.goto("/login");
+  await expect(page.getByRole("button", { name: "Google indisponível" })).toBeDisabled();
+  await expect(page.getByText("Não foi possível carregar o Google. Você pode entrar com e-mail e senha.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeEnabled();
 });
 
 test("Google login writes both cookies and opens admin without restoration or idle profile bursts", async ({ page, context, request }) => {
