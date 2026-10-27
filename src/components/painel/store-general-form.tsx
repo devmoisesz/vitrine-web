@@ -45,13 +45,14 @@ export function StoreGeneralForm({
 }) {
   const update = useUpdateStore(slug, accessToken);
   const [success, setSuccess] = useState(false);
+  const description = settings.description ?? "";
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: settings.name,
       email: settings.email ?? "",
       whatsapp: phoneMask(settings.whatsapp),
-      description: settings.description,
+      description,
     },
   });
   useEffect(
@@ -60,9 +61,9 @@ export function StoreGeneralForm({
         name: settings.name,
         email: settings.email ?? "",
         whatsapp: phoneMask(settings.whatsapp),
-        description: settings.description,
+        description,
       }),
-    [settings, form],
+    [settings, description, form],
   );
   const whatsapp = form.register("whatsapp");
 
@@ -75,7 +76,7 @@ export function StoreGeneralForm({
         changes.newEmail = parsed.email;
       if (parsed.whatsapp !== settings.whatsapp.replace(/\D/g, ""))
         changes.newWhatsapp = parsed.whatsapp;
-      if (parsed.description !== settings.description.trim())
+      if (parsed.description !== description.trim())
         changes.newDescription = parsed.description;
       if (Object.keys(changes).length === 0) {
         form.setError("root", { message: "Nenhuma alteração para salvar." });
