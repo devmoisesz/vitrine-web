@@ -25,6 +25,9 @@ export function PainelSidebar() {
   const { data: profile } = useStoreProfile(accessToken);
   const [open, setOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const catalogHref = profile?.store_slug
+    ? `/loja/${encodeURIComponent(profile.store_slug)}/produtos`
+    : "/lojas";
 
   async function handleLogout() {
     setIsLeaving(true);
@@ -101,11 +104,11 @@ export function PainelSidebar() {
         </nav>
         <div className="mt-auto border-t border-gray-200 pt-4">
           <Link prefetch={false}
-            href="/lojas"
+            href={catalogHref}
             onClick={() => setOpen(false)}
             className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-black"
           >
-            Explorar lojas
+            Catálogo
           </Link>
           <button
             onClick={handleLogout}
